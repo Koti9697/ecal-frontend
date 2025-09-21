@@ -3,7 +3,7 @@
 import { useAppSelector } from '../store/hooks';
 import { formatDate as formatDateUtil } from '../utils/dateFormatter';
 import { type RootState } from '../store/store';
-import { SystemSettings } from '../types/models';
+import type { SystemSettings } from '../types/models';
 
 export function useDateFormatter() {
   const settings = useAppSelector((state: RootState) => state.auth.settings as SystemSettings | null);

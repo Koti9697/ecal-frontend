@@ -6,7 +6,7 @@ import { RoleForm } from './RoleForm';
 import { Button } from '../ui/Button';
 import toast from 'react-hot-toast';
 import { PasswordModal } from '../common/PasswordModal';
-import { Privilege, Role } from '../../types/models';
+import type { Privilege, Role } from '../../types/models';
 
 export function RoleManagement() {
     const [roles, setRoles] = useState<Role[]>([]);

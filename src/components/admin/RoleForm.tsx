@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '../ui/Button';
 import { FormError } from '../ui/FormError';
-import { Privilege, Role } from '../../types/models';
+import type { Privilege, Role } from '../../types/models';
 
 interface RoleFormProps {
   role: Role | null;

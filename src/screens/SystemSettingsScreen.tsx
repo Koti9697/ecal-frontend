@@ -12,7 +12,7 @@ import { UserPolicies } from '../components/Settings/UserPolicies';
 import { PasswordPolicy } from '../components/Settings/PasswordPolicy';
 import { SessionManagement } from '../components/Settings/SessionManagement';
 import { Localization } from '../components/Settings/Localization';
-import { SystemSettings } from '../types/models';
+import type { SystemSettings } from '../types/models';
 
 type SettingsTab = 'userPolicies' | 'passwordPolicy' | 'session' | 'localization';
 
@@ -84,7 +84,7 @@ export function SystemSettingsScreen() {
         </nav>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit as any)}>
         <Card title="Configure System-Wide Policies">
             {renderActiveTab()}
 

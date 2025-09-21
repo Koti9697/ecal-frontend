@@ -1,7 +1,7 @@
 // In src/types/models.ts
 
 // This file centralizes all the data structures for the application.
-import { User as AuthUser } from './User';
+import { type User as AuthUser } from './User';
 
 export interface Privilege {
   id: number;

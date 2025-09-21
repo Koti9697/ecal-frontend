@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { logOut } from '../store/authSlice';
 import { type RootState } from '../store/store';
-import { SystemSettings } from '../types/models';
+import type { SystemSettings } from '../types/models';
 
 let timeoutId: ReturnType<typeof setTimeout>;
 let warningTimeoutId: ReturnType<typeof setTimeout>;
