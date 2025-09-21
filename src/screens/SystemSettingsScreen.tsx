@@ -93,13 +93,13 @@ export function SystemSettingsScreen() {
               <p className="text-sm text-slate-600">To save changes, confirm with your password and provide a reason. This action will be recorded in the system-wide audit trail.</p>
               <div>
                 <label className="block text-sm font-medium text-slate-700">Confirm with Your Password <span className="text-red-500">*</span></label>
-                <input type="password" {...register('admin_password', { required: "Your password is required." })} className="mt-1 block w-full md:w-1/2 px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm"/>
-                <FormError>{errors.admin_password?.message}</FormError>
+                <input type="password" {...register('admin_password' as any, { required: "Your password is required." })} className="mt-1 block w-full md:w-1/2 px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm"/>
+                <FormError>{(errors as any).admin_password?.message}</FormError>
               </div>
                <div>
                 <label className="block text-sm font-medium text-slate-700">Reason for Change <span className="text-red-500">*</span></label>
-                <input type="text" {...register('reason', { required: "A reason is mandatory." })} className="mt-1 block w-full md:w-1/2 px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm"/>
-                <FormError>{errors.reason?.message}</FormError>
+                <input type="text" {...register('reason' as any, { required: "A reason is mandatory." })} className="mt-1 block w-full md:w-1/2 px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm"/>
+                <FormError>{(errors as any).reason?.message}</FormError>
               </div>
             </div>
 
