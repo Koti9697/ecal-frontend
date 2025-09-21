@@ -1,6 +1,7 @@
 // In src/components/admin/UserForm.tsx
 
-import React, { useEffect, ChangeEvent } from 'react';
+import React, { useEffect } from 'react';
+import type { ChangeEvent } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import type { User, Group } from '../../types/User';
 import { Button } from '../ui/Button';
