@@ -2,9 +2,9 @@
 
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { type User } from '../types/User';
+import type { User } from '../types/User';
 import { evaluate } from 'mathjs';
-import { Template, Record } from '../types/models';
+import type { Template, Record } from '../types/models';
 
 const getGlobalFieldIndex = (dataInputSections: any[], sIdx: number, fIdx: number) => {
     let count = 0;
@@ -12,14 +12,12 @@ const getGlobalFieldIndex = (dataInputSections: any[], sIdx: number, fIdx: numbe
     return count + fIdx;
 };
 
-// --- FIX: Re-engineered Header/Footer logic ---
 const addHeaderAndFooter = (doc: jsPDF, title: string, user: User | null, data: any) => {
     const pageNumber = data.pageNumber;
     const pageCount = (doc as any).internal.getNumberOfPages();
     const pageHeight = doc.internal.pageSize.getHeight();
     const pageWidth = doc.internal.pageSize.getWidth();
 
-    // Header is drawn on every page
     doc.setFontSize(16);
     doc.text(title, 14, 22);
     doc.setFontSize(10);
@@ -27,7 +25,6 @@ const addHeaderAndFooter = (doc: jsPDF, title: string, user: User | null, data: 
     doc.text(`Generation Date: ${new Date().toLocaleString()}`, pageWidth - 14, 30, { align: 'right' });
     doc.line(14, 35, pageWidth - 14, 35);
 
-    // Footer is drawn on every page
     doc.setFontSize(8);
     doc.text(`Page ${pageNumber} of ${pageCount}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
     doc.text('CalJar Confidential', 14, pageHeight - 10);
@@ -42,8 +39,6 @@ export const generateRecordPdf = (record: Record, user: User | null, formValues:
     const docData = record.template.document_data || {};
     const didDrawPage = (data: any) => addHeaderAndFooter(doc, docTitle, user, data);
     let allBodyRows: any[] = [];
-
-    // --- Re-engineered to build a single table body ---
 
     if (selectedSections.includes('Record Details')) {
         allBodyRows.push([{ content: 'Record Details', colSpan: 2, styles: { fontStyle: 'bold', fillColor: '#d3d3d3' } }]);
@@ -105,7 +100,7 @@ export const generateRecordPdf = (record: Record, user: User | null, formValues:
     
     finalY = (doc as any).lastAutoTable.finalY;
 
-    if (selectedSections.includes('Signatures') && record.signatures?.length > 0) {
+    if (selectedSections.includes('Signatures') && record.signatures?.length) {
         autoTable(doc, {
             startY: finalY + 10,
             head: [['Action', 'Signed By', 'Date & Time']],
@@ -116,7 +111,7 @@ export const generateRecordPdf = (record: Record, user: User | null, formValues:
         finalY = (doc as any).lastAutoTable.finalY;
     }
 
-    if (selectedSections.includes('Audit Trail') && record.audit_trail?.length > 0) {
+    if (selectedSections.includes('Audit Trail') && record.audit_trail?.length) {
         autoTable(doc, {
             startY: finalY + 10,
             head: [['Date & Time', 'User', 'Action', 'Reason', 'Old Value', 'New Value']],
@@ -138,8 +133,6 @@ export const generateTemplatePdf = (template: Template, user: User | null, selec
     const didDrawPage = (data: any) => addHeaderAndFooter(doc, docTitle, user, data);
     let allBodyRows: any[] = [];
     let sectionCounter = 1;
-
-    // --- Re-engineered to build a single table body ---
 
     const hasInfoSection = selectedSections.includes('Template Details') || selectedSections.includes('Analysis Information');
     if (hasInfoSection) {
@@ -245,9 +238,9 @@ export const generateTemplatePdf = (template: Template, user: User | null, selec
         finalY = (doc as any).lastAutoTable.finalY;
     }
     
-     if (selectedSections.includes('Signatures') && template.signatures?.length > 0) {
+     if (selectedSections.includes('Signatures') && template.signatures?.length) {
         autoTable(doc, {
-            startY: finalY + 1, // Start right after the title
+            startY: finalY + 1,
             head: [['Action', 'Signed By', 'Date & Time']],
             body: template.signatures.map((s: any) => [s.meaning, s.signed_by.username, new Date(s.signed_at).toLocaleString()]),
             margin: tableMargin,
@@ -256,7 +249,7 @@ export const generateTemplatePdf = (template: Template, user: User | null, selec
         finalY = (doc as any).lastAutoTable.finalY;
     }
 
-    if (selectedSections.includes('Template History') && template.audit_trail?.length > 0) {
+    if (selectedSections.includes('Template History') && template.audit_trail?.length) {
         autoTable(doc, {
             startY: finalY + 10,
             head: [['Date & Time', 'User', 'Action', 'Reason', 'Old Value', 'New Value']],

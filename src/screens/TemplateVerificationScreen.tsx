@@ -1,8 +1,9 @@
 // In src/screens/TemplateVerificationScreen.tsx
 
-import { useForm, Controller, Control } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
+import type { Control } from 'react-hook-form';
 import { evaluate } from 'mathjs';
-import { Template } from '../types/models';
+import type { Template } from '../types/models';
 
 const VerificationField = ({ field, control, defaultValue }: { field: { value: string, label: string }, control: Control<any>, defaultValue: any }) => (
     <div className="mb-2">

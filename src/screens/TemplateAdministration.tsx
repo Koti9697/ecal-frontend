@@ -10,7 +10,7 @@ import { useHasPrivilege } from '../hooks/useHasPrivilege';
 import toast from 'react-hot-toast';
 import { useDateFormatter } from '../hooks/useDateFormatter';
 import { SkeletonLoader } from '../components/ui/SkeletonLoader';
-import { Template } from '../types/models';
+import type { Template } from '../types/models';
 
 export function TemplateAdministration({ onNavigateToVerify }: { onNavigateToVerify: (template: Template) => void }) {
     const [templates, setTemplates] = useState<Template[]>([]);
@@ -139,7 +139,7 @@ export function TemplateAdministration({ onNavigateToVerify }: { onNavigateToVer
             <>
                 <button onClick={() => handleEdit(template)} className="text-blue-600 hover:text-blue-900">{editButtonText}</button>
                 {template.status === 'DRAFT' && canVerify &&
-                    <button onClick={() => handleEdit(template)} className={`${buttonBaseClass} text-teal-600 hover:text-teal-900`}>Verify</button>}
+                    <button onClick={() => onNavigateToVerify(template)} className={`${buttonBaseClass} text-teal-600 hover:text-teal-900`}>Verify</button>}
                 {template.status === 'VERIFIED' && canSubmit &&
                     <button onClick={() => handleWorkflowClick('submit', template.id, 'Submitted')} className={`${buttonBaseClass} text-green-600 hover:text-green-900`}>Submit for Review</button>}
                 {template.status === 'SUBMITTED_FOR_REVIEW' && canReview &&
@@ -202,7 +202,6 @@ export function TemplateAdministration({ onNavigateToVerify }: { onNavigateToVer
                         <table className="min-w-full divide-y divide-slate-200">
                             <thead className="bg-slate-50">
                                 <tr>
-                                    {/* --- NEW: Template ID column --- */}
                                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Template ID</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Template Name</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Version</th>

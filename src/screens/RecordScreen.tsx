@@ -1,7 +1,8 @@
 // In src/screens/RecordScreen.tsx
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { useForm, Controller, Control } from 'react-hook-form';
+import { useState, useEffect, useMemo } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import type { Control } from 'react-hook-form';
 import { useApi } from '../hooks/useApi';
 import { PasswordModal } from '../components/common/PasswordModal';
 import { Button } from '../components/ui/Button';
@@ -13,8 +14,8 @@ import { generateRecordPdf } from '../utils/reportGenerator';
 import { useAppSelector } from '../store/hooks';
 import { ReportSectionsModal } from '../components/common/ReportSectionsModal';
 import { SkeletonLoader } from '../components/ui/SkeletonLoader';
-import { Record, Template } from '../types/models';
-import { User } from '../types/User';
+import type { Record, Template } from '../types/models';
+import type { User } from '../types/User';
 
 const RecordField = ({ field, control, recordStatus }: { field: { id: string; label: string; value: string }, control: Control<any>, recordStatus: string }) => {
     const isReadOnly = recordStatus !== 'DRAFT';
@@ -128,10 +129,6 @@ export function RecordScreen({ recordId, template, onBack }: { recordId?: number
             }
             
             setRecord(updatedRecord);
-
-            // --- THIS IS THE FIX ---
-            // After saving, we reset the form with the latest data from the server.
-            // This tells react-hook-form that the current state is now the "saved" state.
             const newInitialData: { [key: string]: any } = {};
             updatedRecord.data_entries.forEach((entry: any) => { newInitialData[entry.cell_id] = entry.cell_value; });
             updatedRecord.template.document_data.sampleInfo?.fields.forEach((field: any) => {
@@ -240,10 +237,10 @@ export function RecordScreen({ recordId, template, onBack }: { recordId?: number
     const availableReportSections = useMemo(() => {
         if (!record) return [];
         const sections = ['Record Details', 'Data & Results'];
-        if (record.signatures?.length > 0) {
+        if (record.signatures?.length) {
             sections.push('Signatures');
         }
-        if (record.audit_trail?.length > 0) {
+        if (record.audit_trail?.length) {
             sections.push('Audit Trail');
         }
         return sections;
@@ -295,8 +292,8 @@ export function RecordScreen({ recordId, template, onBack }: { recordId?: number
 
             {activeTab === 'history' && (
                 <div className="space-y-6">
-                    <div className="designer-section space-y-3"><h4 className="font-bold text-lg">Approvals History</h4><div className="overflow-x-auto"><table className="min-w-full divide-y divide-slate-200"><thead className="bg-slate-200"><tr><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Action</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Signed By</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Date & Time</th></tr></thead><tbody className="bg-white divide-y divide-slate-200">{record?.signatures?.length > 0 ? record.signatures.map((s: any) => (<tr key={s.signed_at}><td className="px-4 py-2 text-sm">{s.meaning}</td><td className="px-4 py-2 text-sm">{s.signed_by.username}</td><td className="px-4 py-2 text-sm">{formatDate(s.signed_at)}</td></tr>)) : (<tr><td colSpan={3} className="px-4 py-4 text-center text-slate-500">No signatures recorded.</td></tr>)}</tbody></table></div></div>
-                    <div className="designer-section space-y-3"><h4 className="font-bold text-lg">Record History</h4><div className="overflow-x-auto"><table className="min-w-full divide-y divide-slate-200"><thead className="bg-slate-200"><tr><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Date & Time</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">User</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Action</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Reason</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Previous Value</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">New Value</th></tr></thead><tbody className="bg-white divide-y divide-slate-200">{record?.audit_trail?.length > 0 ? record.audit_trail.map((log: any) => (<tr key={log.id}><td className="px-4 py-2 text-sm">{formatDate(log.timestamp)}</td><td className="px-4 py-2 text-sm">{log.user.username}</td><td className="px-4 py-2 text-sm">{log.details}</td><td className="px-4 py-2 text-sm">{log.reason_for_change}</td><td className="px-4 py-2 text-sm">{log.previous_value}</td><td className="px-4 py-2 text-sm">{log.new_value}</td></tr>)) : (<tr><td colSpan={6} className="px-4 py-4 text-center text-slate-500">No history recorded.</td></tr>)}</tbody></table></div></div>
+                    <div className="designer-section space-y-3"><h4 className="font-bold text-lg">Approvals History</h4><div className="overflow-x-auto"><table className="min-w-full divide-y divide-slate-200"><thead className="bg-slate-200"><tr><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Action</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Signed By</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Date & Time</th></tr></thead><tbody className="bg-white divide-y divide-slate-200">{record?.signatures?.length ? record.signatures.map((s: any) => (<tr key={s.signed_at}><td className="px-4 py-2 text-sm">{s.meaning}</td><td className="px-4 py-2 text-sm">{s.signed_by.username}</td><td className="px-4 py-2 text-sm">{formatDate(s.signed_at)}</td></tr>)) : (<tr><td colSpan={3} className="px-4 py-4 text-center text-slate-500">No signatures recorded.</td></tr>)}</tbody></table></div></div>
+                    <div className="designer-section space-y-3"><h4 className="font-bold text-lg">Record History</h4><div className="overflow-x-auto"><table className="min-w-full divide-y divide-slate-200"><thead className="bg-slate-200"><tr><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Date & Time</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">User</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Action</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Reason</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Previous Value</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">New Value</th></tr></thead><tbody className="bg-white divide-y divide-slate-200">{record?.audit_trail?.length ? record.audit_trail.map((log: any) => (<tr key={log.id}><td className="px-4 py-2 text-sm">{formatDate(log.timestamp)}</td><td className="px-4 py-2 text-sm">{log.user.username}</td><td className="px-4 py-2 text-sm">{log.details}</td><td className="px-4 py-2 text-sm">{log.reason_for_change}</td><td className="px-4 py-2 text-sm">{log.previous_value}</td><td className="px-4 py-2 text-sm">{log.new_value}</td></tr>)) : (<tr><td colSpan={6} className="px-4 py-4 text-center text-slate-500">No history recorded.</td></tr>)}</tbody></table></div></div>
                 </div>
             )}
         </div>

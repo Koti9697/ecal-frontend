@@ -7,13 +7,12 @@ import toast from 'react-hot-toast';
 import { useAppSelector } from '../store/hooks';
 import { PasswordModal } from '../components/common/PasswordModal';
 import { useHasPrivilege } from '../hooks/useHasPrivilege';
-import { SkeletonLoader } from '../components/ui/SkeletonLoader'; // IMPORT a skeleton loader
-import { Record } from '../types/models';
-import { Button } from '../components/ui/Button';
+import { SkeletonLoader } from '../components/ui/SkeletonLoader';
+import type { Record } from '../types/models';
 
 export function RecordListScreen({ onNavigateToRecord }: { onNavigateToRecord: (recordId: number) => void }) {
     const [records, setRecords] = useState<Record[]>([]);
-    const [isLoading, setIsLoading] = useState(true); // NEW loading state
+    const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('DRAFT');
     const [filterText, setFilterText] = useState('');
     const [isWorkflowModalOpen, setIsWorkflowModalOpen] = useState(false);
@@ -29,14 +28,14 @@ export function RecordListScreen({ onNavigateToRecord }: { onNavigateToRecord: (
     const isApprover = user?.roles.includes('Approver');
 
     const fetchRecords = useCallback(async () => {
-        setIsLoading(true); // Set loading to true
+        setIsLoading(true);
         try {
             const data = await api('/records/');
             setRecords(data);
         } catch (error) {
             toast.error("Failed to fetch records.");
         } finally {
-            setIsLoading(false); // Set loading to false
+            setIsLoading(false);
         }
     }, [api]);
 
@@ -56,7 +55,7 @@ export function RecordListScreen({ onNavigateToRecord }: { onNavigateToRecord: (
         try {
             await api(`/records/${recordId}/${action}/`, { method: 'POST', data: { password, reason, meaning } });
             toast.success(`Record successfully ${action.replace('_', ' ')}ed!`);
-            fetchRecords(); // Refresh the list
+            fetchRecords();
         } catch (err: any) {
             toast.error(`Action failed: ${err.data?.detail || 'An error occurred.'}`);
         }

@@ -1,7 +1,8 @@
 // In src/screens/MyProfileScreen.tsx
 
-import { useState, useEffect, ReactNode } from 'react';
-import { useForm, FieldError, Merge, FieldErrorsImpl } from 'react-hook-form';
+import { useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
+import { useForm } from 'react-hook-form';
 import { useApi } from '../hooks/useApi';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';

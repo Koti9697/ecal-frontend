@@ -19,7 +19,7 @@ import { useApi } from '../hooks/useApi';
 import { useAppDispatch } from '../store/hooks';
 import { setSettings } from '../store/authSlice';
 import { ReportingScreen } from './ReportingScreen';
-import { Template } from '../types/models';
+import type { Template } from '../types/models';
 
 type ViewState =
   | { view: 'dashboard' } | { view: 'templates' } | { view: 'template-admin' }
