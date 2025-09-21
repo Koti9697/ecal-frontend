@@ -1,7 +1,8 @@
 // In src/components/templates/TemplateForm.tsx
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { useForm, Controller, Control } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
+import type { Control } from 'react-hook-form';
 import { Button } from '../ui/Button';
 import { PasswordModal } from '../common/PasswordModal';
 import { evaluate } from 'mathjs';
@@ -9,11 +10,11 @@ import toast from 'react-hot-toast';
 import { FormulaBuilder } from './FormulaBuilder';
 import { useDateFormatter } from '../../hooks/useDateFormatter';
 import { generateTemplatePdf } from '../../utils/reportGenerator';
-import { useAppSelector } from '../../store/hooks';
+import { useAppSelector } from '../../hooks/useAppSelector';
 import { useHasPrivilege } from '../../hooks/useHasPrivilege';
 import { ReportSectionsModal } from '../common/ReportSectionsModal';
-import { Template } from '../../types/models';
-import { User } from '../../types/User';
+import type { Template } from '../../types/models';
+import type { User } from '../../types/User';
 
 interface ValidationRules {
   type: 'Any' | 'Whole Number' | 'Decimal' | 'List' | 'Custom';
@@ -46,7 +47,7 @@ const EditableFieldWithCellID = ({ field, index, onUpdate, onRemove, cellId, rea
     );
 };
 
-const EditableField = ({ field, index, onUpdate, onRemove, isHeader, readOnly, isFormula = false, onFocus }: { field: KeyValueField, index: number, onUpdate: (index: number, key: string, value: string) => void, onRemove: (index: number) => void, isHeader: boolean, readOnly: boolean, isFormula?: boolean, onFocus: () => void }) => {
+const EditableField = ({ field, index, onUpdate, onRemove, isHeader, readOnly, isFormula = false, onFocus }: { field: KeyValueField, index: number, onUpdate: (index: number, key: string, value: string) => void, onRemove: (index: number) => void, isHeader: boolean, readOnly: boolean, isFormula?: boolean, onFocus?: () => void }) => {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     useEffect(() => {
@@ -127,8 +128,8 @@ export function TemplateForm({ template, onSave, onCancel, onVerify }: { templat
             resetMainForm({
                 template_id: template.template_id,
                 name: template.name,
-                major_version: template.major_version,
-                minor_version: template.minor_version
+                major_version: (template as any).major_version,
+                minor_version: (template as any).minor_version
             });
             setHeaderFields(data.header?.fields || []);
             setSampleInfoFields(data.sampleInfo?.fields || []);
@@ -148,7 +149,6 @@ export function TemplateForm({ template, onSave, onCancel, onVerify }: { templat
             setActiveTab('info');
             return;
         }
-        // --- NEW: Check for Template ID ---
         if (!getValues('template_id')) {
             toast.error("Template ID is required.");
             setActiveTab('info');
@@ -170,7 +170,7 @@ export function TemplateForm({ template, onSave, onCancel, onVerify }: { templat
     };
 
     const handleVerifyClick = () => setIsVerifyModalOpen(true);
-    const handleConfirmVerify = ({ password, reason, meaning }: { password: string, reason: string, meaning: string }) => {
+    const handleConfirmVerify = ({ password, reason, meaning }: { password: string, reason: string, meaning?: string }) => {
         setIsVerifyModalOpen(false);
         const verification_data = getVerificationValues();
         onVerify({ id: template?.id, verification_data, password, reason, meaning });
@@ -315,7 +315,6 @@ export function TemplateForm({ template, onSave, onCancel, onVerify }: { templat
                         <div className="designer-section space-y-3">
                             <h4 className="font-bold text-lg">Template Information</h4>
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                {/* --- NEW: Template ID field --- */}
                                 <div><label>Template ID <span className="text-red-500">*</span></label><input {...register('template_id')} className="input-style" readOnly={isReadOnly}/></div>
                                 <div><label>Template Name <span className="text-red-500">*</span></label><input {...register('name')} className="input-style" readOnly={isReadOnly}/></div>
                                 <div><label>Major Version</label><input type="number" {...register('major_version')} className="input-style" readOnly={isReadOnly}/></div>
@@ -326,7 +325,7 @@ export function TemplateForm({ template, onSave, onCancel, onVerify }: { templat
                                 <div className="col-span-6">Field Label</div>
                                 <div className="col-span-5">Default Value</div>
                             </div>
-                            {headerFields.map((f, i) => <EditableField key={f.id} field={f} index={i} onUpdate={handleFieldUpdate(setHeaderFields) as any} onRemove={handleRemoveField(setHeaderFields)} isHeader={true} readOnly={isReadOnly} onFocus={() => {}}/>)}
+                            {headerFields.map((f, i) => <EditableField key={f.id} field={f} index={i} onUpdate={handleFieldUpdate(setHeaderFields) as any} onRemove={handleRemoveField(setHeaderFields)} isHeader={true} readOnly={isReadOnly}/>)}
                             {!isReadOnly && <Button type="button" variant="secondary" onClick={handleAddField(setHeaderFields)}>Add Template Info Field</Button>}
                         </div>
                         <div className="designer-section space-y-3">
@@ -336,7 +335,7 @@ export function TemplateForm({ template, onSave, onCancel, onVerify }: { templat
                                 <div className="col-span-6">Field Label</div>
                                 <div className="col-span-5">Default Value / Placeholder</div>
                             </div>
-                            {sampleInfoFields.map((f, i) => <EditableField key={f.id} field={f} index={i} onUpdate={handleFieldUpdate(setSampleInfoFields) as any} onRemove={handleRemoveField(setSampleInfoFields)} isHeader={true} readOnly={isReadOnly} onFocus={() => {}}/>)}
+                            {sampleInfoFields.map((f, i) => <EditableField key={f.id} field={f} index={i} onUpdate={handleFieldUpdate(setSampleInfoFields) as any} onRemove={handleRemoveField(setSampleInfoFields)} isHeader={true} readOnly={isReadOnly}/>)}
                             {!isReadOnly && <Button type="button" variant="secondary" onClick={handleAddField(setSampleInfoFields)}>Add Analysis Info Field</Button>}
                         </div>
                     </div>
@@ -450,7 +449,7 @@ export function TemplateForm({ template, onSave, onCancel, onVerify }: { templat
                 </div>
 
                 <PasswordModal isOpen={isSaveModalOpen} onConfirm={handleConfirmSave} onCancel={() => setIsSaveModalOpen(false)} title="Confirm Template Save" actionText="Confirm & Save" isReasonRequired={true}/>
-                <PasswordModal isOpen={isVerifyModalOpen} onConfirm={handleConfirmVerify as any} onCancel={() => setIsVerifyModalOpen(false)} title="Confirm Template Verification" actionText="Confirm with E-Signature" isReasonRequired={true} showMeaningField={true} meaningOptions={["Verified"]}/>
+                <PasswordModal isOpen={isVerifyModalOpen} onConfirm={handleConfirmVerify} onCancel={() => setIsVerifyModalOpen(false)} title="Confirm Template Verification" actionText="Confirm with E-Signature" isReasonRequired={true} showMeaningField={true} meaningOptions={["Verified"]}/>
             </div>
         </div>
     );
