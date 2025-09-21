@@ -4,18 +4,17 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { logOut } from '../store/authSlice';
 import { type RootState } from '../store/store';
+import { SystemSettings } from '../types/models';
 
-const WARNING_MINUTES = 2;   // Show warning modal 2 minutes before timeout
-
-let timeoutId: NodeJS.Timeout;
-let warningTimeoutId: NodeJS.Timeout;
+let timeoutId: ReturnType<typeof setTimeout>;
+let warningTimeoutId: ReturnType<typeof setTimeout>;
 
 export function useSessionTimeout() {
   const dispatch = useAppDispatch();
   const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
-  
-  // --- MODIFIED: Get the timeout from Redux store ---
-  const sessionTimeoutMinutes = useAppSelector((state: RootState) => state.auth.settings?.session_timeout_minutes || 15);
+
+  const settings = useAppSelector((state: RootState) => state.auth.settings as SystemSettings | null);
+  const sessionTimeoutMinutes = settings?.session_timeout_minutes || 15;
 
   const handleLogout = useCallback(() => {
     dispatch(logOut());
@@ -26,6 +25,7 @@ export function useSessionTimeout() {
     clearTimeout(timeoutId);
     clearTimeout(warningTimeoutId);
 
+    const WARNING_MINUTES = 2;
     const sessionTimeoutMs = sessionTimeoutMinutes * 60 * 1000;
     const warningTimeMs = WARNING_MINUTES * 60 * 1000;
 
@@ -54,7 +54,7 @@ export function useSessionTimeout() {
       window.addEventListener(event, eventListener);
     });
 
-    resetTimers(); // Initial setup
+    resetTimers();
 
     return () => {
       events.forEach(event => {

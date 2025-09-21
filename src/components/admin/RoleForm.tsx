@@ -1,23 +1,24 @@
-import React, { useState, useEffect } from 'react';
+// In src/components/admin/RoleForm.tsx
+
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '../ui/Button';
 import { FormError } from '../ui/FormError';
+import { Privilege, Role } from '../../types/models';
 
-interface Privilege {
-  id: number;
-  name: string;
-  description: string;
-}
-interface Role {
-  id: number;
-  name: string;
-  privileges: Privilege[];
-}
 interface RoleFormProps {
   role: Role | null;
   allPrivileges: Privilege[];
   onSave: (data: any) => void;
   onCancel: () => void;
+}
+
+interface PrivilegeListProps {
+  privileges: Privilege[];
+  onAction: (privilege: Privilege) => void;
+  actionSymbol: string;
+  actionText: string;
+  actionVariant: 'primary' | 'secondary' | 'danger';
 }
 
 export function RoleForm({ role, allPrivileges, onSave, onCancel }: RoleFormProps) {
@@ -30,11 +31,8 @@ export function RoleForm({ role, allPrivileges, onSave, onCancel }: RoleFormProp
 
   useEffect(() => {
     reset({ name: role?.name || '' });
-    
-    // --- THIS IS THE FIX ---
-    // Correctly handle the case where role.privileges might be undefined
+
     const assignedIds = new Set((role?.privileges || []).map(p => p.id));
-    
     const sortedPrivileges = [...allPrivileges].sort((a, b) => a.name.localeCompare(b.name));
     const assigned = role?.privileges ? [...role.privileges].sort((a,b) => a.name.localeCompare(b.name)) : [];
 
@@ -61,10 +59,10 @@ export function RoleForm({ role, allPrivileges, onSave, onCancel }: RoleFormProp
     onSave(roleData);
   };
 
-  const PrivilegeList = ({ privileges, onAction, actionSymbol, actionText, actionVariant }) => (
+  const PrivilegeList = ({ privileges, onAction, actionSymbol, actionText, actionVariant }: PrivilegeListProps) => (
     <div className="border rounded-md h-64 overflow-y-auto bg-white p-2 space-y-2">
       {privileges.length === 0 && <p className="text-slate-400 text-sm p-2">No privileges in this list.</p>}
-      {privileges.map(p => (
+      {privileges.map((p: Privilege) => (
         <div key={p.id} className="flex items-center justify-between p-2 rounded-md hover:bg-slate-100">
           <div>
             <p className="font-medium text-sm text-slate-800">{p.name}</p>
@@ -85,13 +83,13 @@ export function RoleForm({ role, allPrivileges, onSave, onCancel }: RoleFormProp
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-700">Role Name <span className="text-red-500">*</span></label>
-            <input 
+            <input
               {...register('name', { required: 'Role name is required' })}
               className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm"
             />
             <FormError>{errors.name?.message}</FormError>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Manage Privileges</label>
             <div className="grid grid-cols-2 gap-4">

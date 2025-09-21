@@ -2,17 +2,16 @@
 
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logOut } from '../../store/authSlice';
-import { useHasPrivilege } from '../../hooks/useHasPrivilege';
 
 interface SidebarProps {
   activeItem: string;
   onViewChange: (view: string) => void;
 }
 
-const navConfig = {
+const navConfig: { [key: string]: string[] } = {
     'dashboard': ['VIEW_ALL_RECORDS_TEMPLATES'],
     'templates': ['CREATE_EDIT_DRAFT_RECORDS'],
-    'records': ['VIEW_ALL_RECORDS_TEMPLATES'], 
+    'records': ['VIEW_ALL_RECORDS_TEMPLATES'],
     'reporting': ['GENERATE_REPORTS_FOR_RECORDS'],
     'template-admin': ['MANAGE_TEMPLATES', 'PERFORM_REVIEW', 'PERFORM_APPROVAL'],
     'audit-trail': ['VIEW_SYSTEM_WIDE_AUDIT_TRAIL'],
@@ -34,14 +33,14 @@ const navItems = [
 export function Sidebar({ activeItem, onViewChange }: SidebarProps) {
     const dispatch = useAppDispatch();
     const user = useAppSelector((state) => state.auth.user);
-    
+
     const visibleNavItems = navItems.filter(item => {
         const requiredPrivileges = navConfig[item.key];
         if (!requiredPrivileges) return true;
         if (!user || !Array.isArray(user.privileges)) return false;
         return user.privileges.some(userPriv => requiredPrivileges.includes(userPriv));
     });
-    
+
     const handleLogout = () => {
         dispatch(logOut());
     };

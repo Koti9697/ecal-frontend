@@ -1,20 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
+// In src/components/admin/RoleManagement.tsx
+
+import { useState, useEffect, useCallback } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { RoleForm } from './RoleForm';
 import { Button } from '../ui/Button';
 import toast from 'react-hot-toast';
 import { PasswordModal } from '../common/PasswordModal';
-
-interface Privilege {
-  id: number;
-  name: string;
-  description: string;
-}
-interface Role {
-  id: number;
-  name: string;
-  privileges?: Privilege[];
-}
+import { Privilege, Role } from '../../types/models';
 
 export function RoleManagement() {
     const [roles, setRoles] = useState<Role[]>([]);
@@ -22,7 +14,7 @@ export function RoleManagement() {
     const [selectedRole, setSelectedRole] = useState<Role | null>(null);
     const [isFormVisible, setIsFormVisible] = useState(false);
     const api = useApi();
-    
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [pendingRoleData, setPendingRoleData] = useState<any | null>(null);
 
@@ -59,7 +51,7 @@ export function RoleManagement() {
         setSelectedRole(roleWithPrivileges);
         setIsFormVisible(true);
     };
-    
+
     const handleCancel = () => {
         setIsFormVisible(false);
         setSelectedRole(null);
@@ -72,13 +64,13 @@ export function RoleManagement() {
         setIsModalOpen(true);
     };
 
-    const handleConfirmSave = async ({ password, reason }) => {
+    const handleConfirmSave = async ({ password, reason }: { password: string; reason: string; }) => {
         if (!pendingRoleData) return;
 
         const isEditing = !!pendingRoleData.id;
         const method = isEditing ? 'PUT' : 'POST';
         const endpoint = isEditing ? `/groups/${pendingRoleData.id}/` : '/groups/';
-        
+
         const dataToSubmit = {
             ...pendingRoleData,
             admin_password: password,
@@ -132,7 +124,7 @@ export function RoleManagement() {
                     </div>
                 </>
             )}
-            
+
             <PasswordModal
                 isOpen={isModalOpen}
                 onConfirm={handleConfirmSave}

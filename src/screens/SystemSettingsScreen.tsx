@@ -1,6 +1,6 @@
 // In src/screens/SystemSettingsScreen.tsx
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useApi } from '../hooks/useApi';
 import { Card } from '../components/ui/Card';
@@ -8,13 +8,18 @@ import { Button } from '../components/ui/Button';
 import { FormError } from '../components/ui/FormError';
 import toast from 'react-hot-toast';
 
-import { UserPolicies } from '../components/settings/UserPolicies';
-import { PasswordPolicy } from '../components/settings/PasswordPolicy';
-import { SessionManagement } from '../components/settings/SessionManagement';
-import { Localization } from '../components/settings/Localization';
+import { UserPolicies } from '../components/Settings/UserPolicies';
+import { PasswordPolicy } from '../components/Settings/PasswordPolicy';
+import { SessionManagement } from '../components/Settings/SessionManagement';
+import { Localization } from '../components/Settings/Localization';
+import { SystemSettings } from '../types/models';
 
-type SettingsFormInputs = { /* ... */ };
 type SettingsTab = 'userPolicies' | 'passwordPolicy' | 'session' | 'localization';
+
+interface SettingsFormInputs extends SystemSettings {
+  admin_password?: string;
+  reason?: string;
+}
 
 export function SystemSettingsScreen() {
   const [activeTab, setActiveTab] = useState<SettingsTab>('userPolicies');
@@ -24,7 +29,7 @@ export function SystemSettingsScreen() {
     handleSubmit,
     reset,
     setValue,
-    watch, // <-- Add watch
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<SettingsFormInputs>();
   const api = useApi();
@@ -57,7 +62,6 @@ export function SystemSettingsScreen() {
       case 'userPolicies':
         return <UserPolicies register={register} />;
       case 'passwordPolicy':
-        // --- MODIFIED: Pass setValue and watch ---
         return <PasswordPolicy register={register} setValue={setValue} watch={watch} />;
       case 'session':
         return <SessionManagement register={register} />;
