@@ -10,7 +10,7 @@ import toast from 'react-hot-toast';
 import { FormulaBuilder } from './FormulaBuilder';
 import { useDateFormatter } from '../../hooks/useDateFormatter';
 import { generateTemplatePdf } from '../../utils/reportGenerator';
-import { useAppSelector } from '../../hooks/useAppSelector';
+import { useAppSelector } from '../../store/hooks';
 import { useHasPrivilege } from '../../hooks/useHasPrivilege';
 import { ReportSectionsModal } from '../common/ReportSectionsModal';
 import type { Template } from '../../types/models';
@@ -277,10 +277,10 @@ export function TemplateForm({ template, onSave, onCancel, onVerify }: { templat
         if (docData.verification_data && Object.keys(docData.verification_data).length > 0) {
             sections.push('Verification Data');
         }
-        if (template.signatures?.length > 0) {
+        if (template.signatures && template.signatures.length > 0) {
             sections.push('Signatures');
         }
-        if (template.audit_trail?.length > 0) {
+        if (template.audit_trail && template.audit_trail.length > 0) {
             sections.push('Template History');
         }
         return sections;
@@ -408,7 +408,7 @@ export function TemplateForm({ template, onSave, onCancel, onVerify }: { templat
 
                 {activeTab === 'history' && (
                     <div className="space-y-6">
-                        <div className="designer-section space-y-3"><h4 className="font-bold text-lg">Approvals History</h4><div className="overflow-x-auto"><table className="min-w-full divide-y divide-slate-200"><thead className="bg-slate-200"><tr><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Action</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Signed By</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Date & Time</th></tr></thead><tbody className="bg-white divide-y divide-slate-200">{template?.signatures?.length > 0 ? template.signatures.map((s: any) => (<tr key={s.signed_at}><td className="px-4 py-2 text-sm">{s.meaning}</td><td className="px-4 py-2 text-sm">{s.signed_by.username}</td><td className="px-4 py-2 text-sm">{formatDate(s.signed_at)}</td></tr>)) : (<tr><td colSpan={3} className="px-4 py-4 text-center text-slate-500">No signatures recorded.</td></tr>)}</tbody></table></div></div>
+                        <div className="designer-section space-y-3"><h4 className="font-bold text-lg">Approvals History</h4><div className="overflow-x-auto"><table className="min-w-full divide-y divide-slate-200"><thead className="bg-slate-200"><tr><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Action</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Signed By</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Date & Time</th></tr></thead><tbody className="bg-white divide-y divide-slate-200">{template?.signatures && template.signatures.length > 0 ? template.signatures.map((s: any) => (<tr key={s.signed_at}><td className="px-4 py-2 text-sm">{s.meaning}</td><td className="px-4 py-2 text-sm">{s.signed_by.username}</td><td className="px-4 py-2 text-sm">{formatDate(s.signed_at)}</td></tr>)) : (<tr><td colSpan={3} className="px-4 py-4 text-center text-slate-500">No signatures recorded.</td></tr>)}</tbody></table></div></div>
                         <div className="designer-section space-y-3">
                             <h4 className="font-bold text-lg">Template History</h4>
                             <div className="overflow-x-auto">
@@ -424,7 +424,7 @@ export function TemplateForm({ template, onSave, onCancel, onVerify }: { templat
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-slate-200">
-                                        {template?.audit_trail?.length > 0 ? template.audit_trail.map((log: any) => (
+                                        {template?.audit_trail && template.audit_trail.length > 0 ? template.audit_trail.map((log: any) => (
                                             <tr key={log.id}>
                                                 <td className="px-4 py-2 text-sm">{formatDate(log.timestamp)}</td>
                                                 <td className="px-4 py-2 text-sm">{log.user.username}</td>

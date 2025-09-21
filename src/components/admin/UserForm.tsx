@@ -1,6 +1,6 @@
 // In src/components/admin/UserForm.tsx
 
-import React, { useEffect } from 'react';
+import React, { useEffect, ChangeEvent } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import type { User, Group } from '../../types/User';
 import { Button } from '../ui/Button';
@@ -106,7 +106,7 @@ export function UserForm({ user, allGroups, onSave, onCancel }: UserFormProps) {
 
         <div>
           <Label>Roles / Groups</Label>
-          <Controller name="groups" control={control} rules={{ required: "At least one role must be selected." }} render={({ field }) => ( <select {...field} multiple className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm h-32" value={field.value.map(String)} onChange={e => { const selectedOptions = Array.from(e.target.selectedOptions, option => parseInt(option.value)); field.onChange(selectedOptions); }} > {allGroups.map(group => (<option key={group.id} value={group.id}>{group.name}</option>))} </select> )}/>
+          <Controller name="groups" control={control} rules={{ required: "At least one role must be selected." }} render={({ field }) => ( <select {...field} multiple className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm h-32" value={field.value.map(String)} onChange={(e: ChangeEvent<HTMLSelectElement>) => { const selectedOptions = Array.from(e.target.selectedOptions, option => parseInt(option.value)); field.onChange(selectedOptions); }} > {allGroups.map(group => (<option key={group.id} value={group.id}>{group.name}</option>))} </select> )}/>
           <p className="text-xs text-slate-500 mt-1">Hold Ctrl (or Cmd on Mac) to select multiple roles.</p>
           <FormError>{errors.groups?.message as React.ReactNode}</FormError>
         </div>
