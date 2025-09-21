@@ -1,7 +1,7 @@
 // In src/screens/MyProfileScreen.tsx
 
-import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useState, useEffect, ReactNode } from 'react';
+import { useForm, FieldError, Merge, FieldErrorsImpl } from 'react-hook-form';
 import { useApi } from '../hooks/useApi';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -41,7 +41,7 @@ export function MyProfileScreen() {
         fetchProfile();
     }, [api, resetDetails]);
     
-    const onDetailsSubmit = async (data) => {
+    const onDetailsSubmit = async (data: any) => {
         try {
             await api('/my-profile/update-details/', { method: 'PUT', data });
             toast.success("Profile details updated successfully.");
@@ -50,7 +50,7 @@ export function MyProfileScreen() {
         }
     };
 
-    const onPasswordSubmit = async (data) => {
+    const onPasswordSubmit = async (data: any) => {
         try {
             await api('/my-profile/change-password/', { method: 'POST', data });
             toast.success("Password changed successfully.");
@@ -61,7 +61,7 @@ export function MyProfileScreen() {
         }
     };
     
-    const onAccountClose = async (data) => {
+    const onAccountClose = async (data: any) => {
         if (window.confirm("Are you sure you want to close your account? This action cannot be undone and you will be logged out immediately.")) {
              try {
                 await api('/my-profile/close-account/', { method: 'POST', data });
@@ -96,12 +96,12 @@ export function MyProfileScreen() {
                     <div>
                         <label className="block text-sm font-medium text-slate-700">Current Password <span className="text-red-500">*</span></label>
                         <input type="password" {...detailsRegister('current_password', { required: "Your current password is required to save changes."})} className="input-style mt-1" />
-                        <FormError>{detailsErrors.current_password?.message}</FormError>
+                        <FormError>{detailsErrors.current_password?.message as ReactNode}</FormError>
                     </div>
                      <div>
                         <label className="block text-sm font-medium text-slate-700">Reason for Change <span className="text-red-500">*</span></label>
                         <input {...detailsRegister('reason', { required: "A reason is required for audit purposes."})} className="input-style mt-1" />
-                        <FormError>{detailsErrors.reason?.message}</FormError>
+                        <FormError>{detailsErrors.reason?.message as ReactNode}</FormError>
                     </div>
                     <div className="pt-4 border-t flex justify-end"><Button type="submit">Save Details</Button></div>
                 </form>
@@ -112,24 +112,24 @@ export function MyProfileScreen() {
                     <div>
                         <label className="block text-sm font-medium text-slate-700">Current Password <span className="text-red-500">*</span></label>
                         <input type="password" {...passwordRegister('current_password', { required: "Your current password is required."})} className="input-style mt-1" />
-                        <FormError>{passwordErrors.current_password?.message}</FormError>
+                        <FormError>{passwordErrors.current_password?.message as ReactNode}</FormError>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-slate-700">New Password <span className="text-red-500">*</span></label>
                             <input type="password" {...passwordRegister('new_password', { required: "A new password is required."})} className="input-style mt-1" />
-                             <FormError>{passwordErrors.new_password?.message}</FormError>
+                             <FormError>{passwordErrors.new_password?.message as ReactNode}</FormError>
                         </div>
                          <div>
                             <label className="block text-sm font-medium text-slate-700">Confirm New Password <span className="text-red-500">*</span></label>
                             <input type="password" {...passwordRegister('confirm_password', { required: "Please confirm your new password.", validate: value => value === newPassword || "The passwords do not match"})} className="input-style mt-1" />
-                             <FormError>{passwordErrors.confirm_password?.message}</FormError>
+                             <FormError>{passwordErrors.confirm_password?.message as ReactNode}</FormError>
                         </div>
                     </div>
                      <div>
                         <label className="block text-sm font-medium text-slate-700">Reason for Change <span className="text-red-500">*</span></label>
                         <input {...passwordRegister('reason', { required: "A reason is required for audit purposes."})} className="input-style mt-1" />
-                        <FormError>{passwordErrors.reason?.message}</FormError>
+                        <FormError>{passwordErrors.reason?.message as ReactNode}</FormError>
                     </div>
                     <div className="pt-4 border-t flex justify-end"><Button type="submit">Change Password</Button></div>
                 </form>
@@ -142,12 +142,12 @@ export function MyProfileScreen() {
                         <div>
                             <label className="block text-sm font-medium text-slate-700">Confirm with Password <span className="text-red-500">*</span></label>
                             <input type="password" {...closeRegister('password', { required: "Your password is required to close your account."})} className="input-style mt-1" />
-                            <FormError>{closeErrors.password?.message}</FormError>
+                            <FormError>{closeErrors.password?.message as ReactNode}</FormError>
                         </div>
                          <div>
                             <label className="block text-sm font-medium text-slate-700">Reason for Closure <span className="text-red-500">*</span></label>
                             <input {...closeRegister('reason', { required: "A reason is required for audit purposes."})} className="input-style mt-1" />
-                            <FormError>{closeErrors.reason?.message}</FormError>
+                            <FormError>{closeErrors.reason?.message as ReactNode}</FormError>
                         </div>
                         <div className="pt-4 border-t flex justify-end"><Button type="submit" variant="danger">Close Account</Button></div>
                     </form>

@@ -1,7 +1,7 @@
 // In src/components/admin/UserForm.tsx
 
 import React, { useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, FieldError, Merge, FieldErrorsImpl } from 'react-hook-form';
 import { type User, type Group } from '../../types/User';
 import { Button } from '../ui/Button';
 import { FormError } from '../ui/FormError';
@@ -74,12 +74,12 @@ export function UserForm({ user, allGroups, onSave, onCancel }: UserFormProps) {
           <div>
             <Label>Username</Label>
             <input {...register('username', { required: 'Username is required' })} className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm" disabled={!!user} />
-            <FormError>{errors.username?.message}</FormError>
+            <FormError>{errors.username?.message as React.ReactNode}</FormError>
           </div>
           <div>
             <OptionalLabel>Email</OptionalLabel>
             <input type="email" {...register('email')} className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm" />
-            <FormError>{errors.email?.message}</FormError>
+            <FormError>{errors.email?.message as React.ReactNode}</FormError>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -96,12 +96,12 @@ export function UserForm({ user, allGroups, onSave, onCancel }: UserFormProps) {
           <div>
             <Label>Password</Label>
             <input type="password" {...register('password', { required: !user })} className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm" placeholder={user ? "Leave blank to keep current" : ""} />
-            <FormError>{errors.password?.message}</FormError>
+            <FormError>{errors.password?.message as React.ReactNode}</FormError>
           </div>
           <div>
             <Label>Confirm Password</Label>
             <input type="password" {...register('confirmPassword', { required: !user || !!password, validate: value => value === password || 'Passwords do not match' })} className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm" placeholder={user ? "Leave blank to keep current" : ""} />
-            <FormError>{errors.confirmPassword?.message}</FormError>
+            <FormError>{errors.confirmPassword?.message as React.ReactNode}</FormError>
           </div>
         </div>
 
@@ -109,19 +109,19 @@ export function UserForm({ user, allGroups, onSave, onCancel }: UserFormProps) {
           <Label>Roles / Groups</Label>
           <Controller name="groups" control={control} rules={{ required: "At least one role must be selected." }} render={({ field }) => ( <select {...field} multiple className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm h-32" onChange={e => { const selectedOptions = Array.from(e.target.selectedOptions, option => parseInt(option.value)); field.onChange(selectedOptions); }} > {allGroups.map(group => (<option key={group.id} value={group.id}>{group.name}</option>))} </select> )}/>
           <p className="text-xs text-slate-500 mt-1">Hold Ctrl (or Cmd on Mac) to select multiple roles.</p>
-          <FormError>{errors.groups?.message}</FormError>
+          <FormError>{errors.groups?.message as React.ReactNode}</FormError>
         </div>
 
         <div>
           <Label>Reason for Change</Label>
           <input {...register('reason_for_change', { required: 'A reason for this change is mandatory.' })} className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm" />
-          <FormError>{errors.reason_for_change?.message}</FormError>
+          <FormError>{errors.reason_for_change?.message as React.ReactNode}</FormError>
         </div>
 
         <div>
           <Label>Confirm with Your Password</Label>
           <input type="password" {...register('admin_password', { required: 'Your password is required to confirm this change.' })} className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm" />
-          <FormError>{errors.admin_password?.message}</FormError>
+          <FormError>{errors.admin_password?.message as React.ReactNode}</FormError>
         </div>
 
         <div className="flex justify-end space-x-2 pt-4 border-t">

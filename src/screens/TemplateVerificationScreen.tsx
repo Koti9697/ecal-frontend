@@ -1,8 +1,10 @@
-import React, { useMemo } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { evaluate } from 'mathjs';
+// In src/screens/TemplateVerificationScreen.tsx
 
-const VerificationField = ({ field, control, defaultValue }) => (
+import { useForm, Controller, Control } from 'react-hook-form';
+import { evaluate } from 'mathjs';
+import { Template } from '../types/models';
+
+const VerificationField = ({ field, control, defaultValue }: { field: { value: string, label: string }, control: Control<any>, defaultValue: any }) => (
     <div className="mb-2">
         <label className="block text-sm font-medium text-slate-700">{field.label}</label>
         <Controller
@@ -21,18 +23,18 @@ const VerificationField = ({ field, control, defaultValue }) => (
     </div>
 );
 
-export function TemplateVerificationScreen({ template, onBack }) {
+export function TemplateVerificationScreen({ template, onBack }: { template: Template, onBack: () => void }) {
     const { control, watch } = useForm();
     const watchedFields = watch();
     const docData = template?.document_data || {};
 
-    const getGlobalFieldIndex = (dataInputSections, sIdx, fIdx) => {
+    const getGlobalFieldIndex = (dataInputSections: any[], sIdx: number, fIdx: number) => {
         let count = 0;
         for (let i = 0; i < sIdx; i++) { count += dataInputSections[i].fields.length; }
         return count + fIdx;
     };
 
-    const calculateResult = (formula) => {
+    const calculateResult = (formula: { value: string }) => {
         let expression = formula.value.startsWith('=') ? formula.value.substring(1) : formula.value;
         const variables = new Set([...(expression.match(/A\d+/g) || [])]);
         
@@ -73,7 +75,7 @@ export function TemplateVerificationScreen({ template, onBack }) {
                     <div className="designer-section">
                         <h4 className="font-bold text-lg mb-2">Template Information</h4>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {docData.header.fields.map(field => (
+                            {docData.header.fields.map((field: any) => (
                                 <div key={field.id}>
                                     <label className="block text-sm font-medium text-slate-700">{field.label}</label>
                                     <input value={field.value} readOnly className="input-style bg-slate-100"/>
@@ -87,7 +89,7 @@ export function TemplateVerificationScreen({ template, onBack }) {
                     <div className="designer-section">
                         <h4 className="font-bold text-lg mb-2">Analysis Information</h4>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {docData.sampleInfo.fields.map(field => <VerificationField key={field.id} field={field} control={control} defaultValue={template?.document_data?.verification_data?.[field.value]} />)}
+                            {docData.sampleInfo.fields.map((field: any) => <VerificationField key={field.id} field={field} control={control} defaultValue={template?.document_data?.verification_data?.[field.value]} />)}
                         </div>
                     </div>
                 )}
@@ -95,11 +97,11 @@ export function TemplateVerificationScreen({ template, onBack }) {
                 {docData.dataInputs?.sections?.length > 0 && (
                      <div className="designer-section">
                          <h4 className="font-bold text-lg mb-2">Data Inputs for Calculation</h4>
-                         {docData.dataInputs.sections.map((section, sIdx) => (
+                         {docData.dataInputs.sections.map((section: any, sIdx: number) => (
                             <div key={section.id} className="mb-4">
                                 <h5 className="font-semibold text-md text-slate-800 mb-2">{section.title}</h5>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    {section.fields.map((field, fIdx) => {
+                                    {section.fields.map((field: any, fIdx: number) => {
                                         const cellId = `A${getGlobalFieldIndex(docData.dataInputs.sections, sIdx, fIdx) + 1}`;
                                         return <VerificationField key={field.id} field={{...field, value: cellId }} control={control} defaultValue={template?.document_data?.verification_data?.[cellId]} />;
                                     })}
@@ -113,7 +115,7 @@ export function TemplateVerificationScreen({ template, onBack }) {
                     <div className="designer-section">
                         <h4 className="font-bold text-lg mb-2">Results</h4>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {docData.calculation.formulas.map(field => (
+                            {docData.calculation.formulas.map((field: any) => (
                                  <div className="mb-2" key={field.id}>
                                     <label className="block text-sm font-medium text-slate-700">{field.label}</label>
                                     <input

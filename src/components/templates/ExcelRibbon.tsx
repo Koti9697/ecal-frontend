@@ -1,8 +1,10 @@
+// In src/components/templates/ExcelRibbon.tsx
+
 import React from 'react';
 
 // A simple placeholder component for the Excel-like ribbon
 export function ExcelRibbon() {
-  const RibbonButton = ({ children }) => (
+  const RibbonButton = ({ children }: { children: React.ReactNode }) => (
     <button
       type="button"
       className="px-4 py-1 text-sm font-medium text-slate-700 hover:bg-slate-200 rounded-md"

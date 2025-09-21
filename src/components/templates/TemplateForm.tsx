@@ -1,7 +1,7 @@
 // In src/components/templates/TemplateForm.tsx
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, Control } from 'react-hook-form';
 import { Button } from '../ui/Button';
 import { PasswordModal } from '../common/PasswordModal';
 import { evaluate } from 'mathjs';
@@ -12,6 +12,8 @@ import { generateTemplatePdf } from '../../utils/reportGenerator';
 import { useAppSelector } from '../../store/hooks';
 import { useHasPrivilege } from '../../hooks/useHasPrivilege';
 import { ReportSectionsModal } from '../common/ReportSectionsModal';
+import { Template } from '../../types/models';
+import { User } from '../../types/User';
 
 interface ValidationRules {
   type: 'Any' | 'Whole Number' | 'Decimal' | 'List' | 'Custom';
@@ -21,7 +23,7 @@ interface DataInputField { id: string; label: string; validation: ValidationRule
 interface DataInputSection { id: string; title: string; fields: DataInputField[]; }
 interface KeyValueField { id: string; label: string; value: string; }
 
-const EditableFieldWithCellID = ({ field, index, onUpdate, onRemove, cellId, readOnly }) => {
+const EditableFieldWithCellID = ({ field, index, onUpdate, onRemove, cellId, readOnly }: { field: DataInputField, index: number, onUpdate: (index: number, key: string, value: any) => void, onRemove: (index: number) => void, cellId: string, readOnly: boolean }) => {
     const validationTypes = ["Any", "Whole Number", "Decimal", "List", "Custom"];
     const validation = field.validation || { type: 'Any' };
 
@@ -44,7 +46,7 @@ const EditableFieldWithCellID = ({ field, index, onUpdate, onRemove, cellId, rea
     );
 };
 
-const EditableField = ({ field, index, onUpdate, onRemove, isHeader, readOnly, isFormula = false, onFocus }) => {
+const EditableField = ({ field, index, onUpdate, onRemove, isHeader, readOnly, isFormula = false, onFocus }: { field: KeyValueField, index: number, onUpdate: (index: number, key: string, value: string) => void, onRemove: (index: number) => void, isHeader: boolean, readOnly: boolean, isFormula?: boolean, onFocus: () => void }) => {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     useEffect(() => {
@@ -93,19 +95,19 @@ const EditableField = ({ field, index, onUpdate, onRemove, isHeader, readOnly, i
 };
 
 
-const VerificationField = ({ field, control, defaultValue }) => (
+const VerificationField = ({ field, control, defaultValue }: { field: { id: string, label: string }, control: Control<any>, defaultValue: any }) => (
     <div className="mb-2">
         <label className="block text-sm font-medium text-slate-700">{field.label}</label>
         <Controller name={field.id} control={control} defaultValue={defaultValue} render={({ field: { onChange, onBlur, value } }) => (<input onChange={onChange} onBlur={onBlur} value={value || ''} className="input-style"/>)} />
     </div>
 );
 
-export function TemplateForm({ template, onSave, onCancel, onVerify }) {
+export function TemplateForm({ template, onSave, onCancel, onVerify }: { template: Template | null, onSave: (data: any) => void, onCancel: () => void, onVerify: (data: any) => void }) {
     const { register, reset: resetMainForm, getValues } = useForm();
     const { control: verificationControl, watch: watchVerification, getValues: getVerificationValues, reset: resetVerificationForm } = useForm();
     const watchedFields = watchVerification();
     const formatDate = useDateFormatter();
-    const user = useAppSelector((state) => state.auth.user);
+    const user = useAppSelector((state) => state.auth.user as User | null);
     const canGenerateReport = useHasPrivilege(['GENERATE_REPORTS_FOR_RECORDS']);
 
     const [activeTab, setActiveTab] = useState('info');
@@ -155,7 +157,7 @@ export function TemplateForm({ template, onSave, onCancel, onVerify }) {
         setIsSaveModalOpen(true);
     };
 
-    const handleConfirmSave = ({ password, reason }) => {
+    const handleConfirmSave = ({ password, reason }: { password: string, reason: string }) => {
         setIsSaveModalOpen(false);
         const document_data = {
             header: { fields: headerFields },
@@ -168,10 +170,10 @@ export function TemplateForm({ template, onSave, onCancel, onVerify }) {
     };
 
     const handleVerifyClick = () => setIsVerifyModalOpen(true);
-    const handleConfirmVerify = ({ password, reason, meaning }) => {
+    const handleConfirmVerify = ({ password, reason, meaning }: { password: string, reason: string, meaning: string }) => {
         setIsVerifyModalOpen(false);
         const verification_data = getVerificationValues();
-        onVerify({ id: template.id, verification_data, password, reason, meaning });
+        onVerify({ id: template?.id, verification_data, password, reason, meaning });
     };
 
     const handleConfirmReport = (selectedSections: string[]) => {
@@ -181,16 +183,16 @@ export function TemplateForm({ template, onSave, onCancel, onVerify }) {
         }
     };
 
-    const handleFieldUpdate = (setter) => (index, key, value) => setter(prev => prev.map((item, i) => i === index ? { ...item, [key]: value } : item));
-    const handleAddField = (setter) => () => setter(prev => [...prev, { id: `field_${Date.now()}`, label: '', value: '' }]);
-    const handleRemoveField = (setter) => (index) => setter(prev => prev.filter((_, i) => i !== index));
+    const handleFieldUpdate = (setter: React.Dispatch<React.SetStateAction<any[]>>) => (index: number, key: string, value: any) => setter(prev => prev.map((item, i) => i === index ? { ...item, [key]: value } : item));
+    const handleAddField = (setter: React.Dispatch<React.SetStateAction<any[]>>) => () => setter(prev => [...prev, { id: `field_${Date.now()}`, label: '', value: '' }]);
+    const handleRemoveField = (setter: React.Dispatch<React.SetStateAction<any[]>>) => (index: number) => setter(prev => prev.filter((_, i) => i !== index));
     const handleAddDataInputSection = () => setDataInputSections(prev => [...prev, { id: `section_${Date.now()}`, title: 'New Section', fields: [] }]);
     const handleRemoveDataInputSection = (sectionIndex: number) => {
         setDataInputSections(prev => prev.filter((_, i) => i !== sectionIndex));
     };
-    const handleUpdateSectionTitle = (sIdx, title) => setDataInputSections(prev => prev.map((s, i) => i === sIdx ? { ...s, title } : s));
+    const handleUpdateSectionTitle = (sIdx: number, title: string) => setDataInputSections(prev => prev.map((s, i) => i === sIdx ? { ...s, title } : s));
 
-    const handleAddFieldToSection = (sectionIndex) => {
+    const handleAddFieldToSection = (sectionIndex: number) => {
         setDataInputSections(prev => prev.map((section, i) => {
             if (i === sectionIndex) {
                 const newField: DataInputField = { id: `field_${Date.now()}`, label: '', validation: { type: 'Any' } };
@@ -200,7 +202,7 @@ export function TemplateForm({ template, onSave, onCancel, onVerify }) {
         }));
     };
 
-    const handleUpdateFieldInSection = (sectionIndex, fieldIndex, key, value) => {
+    const handleUpdateFieldInSection = (sectionIndex: number, fieldIndex: number, key: string, value: any) => {
         setDataInputSections(prev => prev.map((section, i) => {
             if (i === sectionIndex) {
                 const updatedFields = section.fields.map((field, j) => j === fieldIndex ? { ...field, [key]: value } : field);
@@ -210,17 +212,17 @@ export function TemplateForm({ template, onSave, onCancel, onVerify }) {
         }));
     };
 
-    const handleRemoveFieldFromSection = (sectionIndex, fieldIndex) => {
+    const handleRemoveFieldFromSection = (sectionIndex: number, fieldIndex: number) => {
         setDataInputSections(prev => prev.map((section, i) => (i === sectionIndex) ? { ...section, fields: section.fields.filter((_, j) => j !== fieldIndex) } : section));
     };
 
-    const getGlobalFieldIndex = (sIdx, fIdx) => {
+    const getGlobalFieldIndex = (sIdx: number, fIdx: number) => {
         let count = 0;
         for (let i = 0; i < sIdx; i++) { count += dataInputSections[i].fields.length; }
         return count + fIdx;
     };
 
-    const calculateResult = (formula) => {
+    const calculateResult = (formula: KeyValueField) => {
         let expression = formula.value.startsWith('=') ? formula.value.substring(1) : formula.value;
         const variables = new Set([...(expression.match(/A\d+/g) || [])]);
         let allInputsProvided = true;
@@ -267,7 +269,7 @@ export function TemplateForm({ template, onSave, onCancel, onVerify }) {
             sections.push('Analysis Information');
         }
         if (docData.dataInputs?.sections?.length > 0) {
-            docData.dataInputs.sections.forEach(section => sections.push(section.title));
+            docData.dataInputs.sections.forEach((section: DataInputSection) => sections.push(section.title));
         }
         if (docData.calculation?.formulas?.length > 0) {
             sections.push('Formula Design');
@@ -324,7 +326,7 @@ export function TemplateForm({ template, onSave, onCancel, onVerify }) {
                                 <div className="col-span-6">Field Label</div>
                                 <div className="col-span-5">Default Value</div>
                             </div>
-                            {headerFields.map((f, i) => <EditableField key={f.id} field={f} index={i} onUpdate={handleFieldUpdate(setHeaderFields)} onRemove={handleRemoveField(setHeaderFields)} isHeader={true} readOnly={isReadOnly}/>)}
+                            {headerFields.map((f, i) => <EditableField key={f.id} field={f} index={i} onUpdate={handleFieldUpdate(setHeaderFields) as any} onRemove={handleRemoveField(setHeaderFields)} isHeader={true} readOnly={isReadOnly} onFocus={() => {}}/>)}
                             {!isReadOnly && <Button type="button" variant="secondary" onClick={handleAddField(setHeaderFields)}>Add Template Info Field</Button>}
                         </div>
                         <div className="designer-section space-y-3">
@@ -334,7 +336,7 @@ export function TemplateForm({ template, onSave, onCancel, onVerify }) {
                                 <div className="col-span-6">Field Label</div>
                                 <div className="col-span-5">Default Value / Placeholder</div>
                             </div>
-                            {sampleInfoFields.map((f, i) => <EditableField key={f.id} field={f} index={i} onUpdate={handleFieldUpdate(setSampleInfoFields)} onRemove={handleRemoveField(setSampleInfoFields)} isHeader={true} readOnly={isReadOnly}/>)}
+                            {sampleInfoFields.map((f, i) => <EditableField key={f.id} field={f} index={i} onUpdate={handleFieldUpdate(setSampleInfoFields) as any} onRemove={handleRemoveField(setSampleInfoFields)} isHeader={true} readOnly={isReadOnly} onFocus={() => {}}/>)}
                             {!isReadOnly && <Button type="button" variant="secondary" onClick={handleAddField(setSampleInfoFields)}>Add Analysis Info Field</Button>}
                         </div>
                     </div>
@@ -352,7 +354,7 @@ export function TemplateForm({ template, onSave, onCancel, onVerify }) {
                                         {!isReadOnly && <Button type="button" variant="danger" onClick={() => handleRemoveDataInputSection(sectionIndex)} className="ml-2">Remove Section</Button>}
                                     </div>
                                     <div className="grid grid-cols-12 gap-2 items-center text-sm font-medium text-slate-600 px-1"><div className="col-span-2">Cell ID</div><div className="col-span-5">Field Label</div><div className="col-span-4">Data Type</div></div>
-                                    {section.fields.map((field, fieldIndex) => (<EditableFieldWithCellID key={field.id} field={field} index={fieldIndex} onUpdate={(...args) => handleUpdateFieldInSection(sectionIndex, ...args)} onRemove={() => handleRemoveFieldFromSection(sectionIndex, fieldIndex)} cellId={`A${getGlobalFieldIndex(sectionIndex, fieldIndex) + 1}`} readOnly={isReadOnly}/>))}
+                                    {section.fields.map((field, fieldIndex) => (<EditableFieldWithCellID key={field.id} field={field} index={fieldIndex} onUpdate={(...args: [number, string, any]) => handleUpdateFieldInSection(sectionIndex, ...args)} onRemove={() => handleRemoveFieldFromSection(sectionIndex, fieldIndex)} cellId={`A${getGlobalFieldIndex(sectionIndex, fieldIndex) + 1}`} readOnly={isReadOnly}/>))}
                                     {!isReadOnly && <Button type="button" variant="secondary" onClick={() => handleAddFieldToSection(sectionIndex)}>Add Data Input</Button>}
                                 </div>
                             ))}
@@ -362,7 +364,7 @@ export function TemplateForm({ template, onSave, onCancel, onVerify }) {
                             <h4 className="font-bold text-lg">Results Section</h4>
                             <p className="text-sm text-slate-600">Define formulas using the Cell IDs from the section above (e.g., = (A3 / A2) * A1).</p>
                             <div className="grid grid-cols-12 gap-2 items-center text-sm font-medium text-slate-600 px-1"><div className="col-span-6">Result Label</div><div className="col-span-5">Formula</div></div>
-                            {formulas.map((field, index) => <EditableField key={field.id} field={field} index={index} onUpdate={handleFieldUpdate(setFormulas)} onRemove={handleRemoveField(setFormulas)} isHeader={true} readOnly={isReadOnly} isFormula={true} onFocus={() => setActiveFormulaIndex(index)}/>)}
+                            {formulas.map((field, index) => <EditableField key={field.id} field={field} index={index} onUpdate={handleFieldUpdate(setFormulas) as any} onRemove={handleRemoveField(setFormulas)} isHeader={true} readOnly={isReadOnly} isFormula={true} onFocus={() => setActiveFormulaIndex(index)}/>)}
                             {!isReadOnly && <Button type="button" variant="secondary" onClick={handleAddField(setFormulas)}>Add Formula</Button>}
 
                             {activeFormulaIndex !== null && !isReadOnly && (
@@ -407,7 +409,7 @@ export function TemplateForm({ template, onSave, onCancel, onVerify }) {
 
                 {activeTab === 'history' && (
                     <div className="space-y-6">
-                        <div className="designer-section space-y-3"><h4 className="font-bold text-lg">Approvals History</h4><div className="overflow-x-auto"><table className="min-w-full divide-y divide-slate-200"><thead className="bg-slate-200"><tr><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Action</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Signed By</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Date & Time</th></tr></thead><tbody className="bg-white divide-y divide-slate-200">{template?.signatures?.length > 0 ? template.signatures.map(s => (<tr key={s.signed_at}><td className="px-4 py-2 text-sm">{s.meaning}</td><td className="px-4 py-2 text-sm">{s.signed_by.username}</td><td className="px-4 py-2 text-sm">{formatDate(s.signed_at)}</td></tr>)) : (<tr><td colSpan={3} className="px-4 py-4 text-center text-slate-500">No signatures recorded.</td></tr>)}</tbody></table></div></div>
+                        <div className="designer-section space-y-3"><h4 className="font-bold text-lg">Approvals History</h4><div className="overflow-x-auto"><table className="min-w-full divide-y divide-slate-200"><thead className="bg-slate-200"><tr><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Action</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Signed By</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Date & Time</th></tr></thead><tbody className="bg-white divide-y divide-slate-200">{template?.signatures?.length > 0 ? template.signatures.map((s: any) => (<tr key={s.signed_at}><td className="px-4 py-2 text-sm">{s.meaning}</td><td className="px-4 py-2 text-sm">{s.signed_by.username}</td><td className="px-4 py-2 text-sm">{formatDate(s.signed_at)}</td></tr>)) : (<tr><td colSpan={3} className="px-4 py-4 text-center text-slate-500">No signatures recorded.</td></tr>)}</tbody></table></div></div>
                         <div className="designer-section space-y-3">
                             <h4 className="font-bold text-lg">Template History</h4>
                             <div className="overflow-x-auto">
@@ -423,7 +425,7 @@ export function TemplateForm({ template, onSave, onCancel, onVerify }) {
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-slate-200">
-                                        {template?.audit_trail?.length > 0 ? template.audit_trail.map(log => (
+                                        {template?.audit_trail?.length > 0 ? template.audit_trail.map((log: any) => (
                                             <tr key={log.id}>
                                                 <td className="px-4 py-2 text-sm">{formatDate(log.timestamp)}</td>
                                                 <td className="px-4 py-2 text-sm">{log.user.username}</td>
@@ -448,7 +450,7 @@ export function TemplateForm({ template, onSave, onCancel, onVerify }) {
                 </div>
 
                 <PasswordModal isOpen={isSaveModalOpen} onConfirm={handleConfirmSave} onCancel={() => setIsSaveModalOpen(false)} title="Confirm Template Save" actionText="Confirm & Save" isReasonRequired={true}/>
-                <PasswordModal isOpen={isVerifyModalOpen} onConfirm={handleConfirmVerify} onCancel={() => setIsVerifyModalOpen(false)} title="Confirm Template Verification" actionText="Confirm with E-Signature" isReasonRequired={true} showMeaningField={true} meaningOptions={["Verified"]}/>
+                <PasswordModal isOpen={isVerifyModalOpen} onConfirm={handleConfirmVerify as any} onCancel={() => setIsVerifyModalOpen(false)} title="Confirm Template Verification" actionText="Confirm with E-Signature" isReasonRequired={true} showMeaningField={true} meaningOptions={["Verified"]}/>
             </div>
         </div>
     );

@@ -1,6 +1,5 @@
 // In src/components/ui/ToggleSwitch.tsx
 
-import React from 'react';
 import type { UseFormRegisterReturn } from 'react-hook-form';
 
 interface ToggleSwitchProps {

@@ -1,4 +1,5 @@
-import React from 'react';
+// In src/components/templates/FormulaBuilder.tsx
+
 import { Button } from '../ui/Button';
 
 interface FormulaBuilderProps {

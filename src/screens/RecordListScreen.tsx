@@ -1,22 +1,23 @@
 // In src/screens/RecordListScreen.tsx
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useApi } from '../hooks/useApi';
 import { Card } from '../components/ui/Card';
 import toast from 'react-hot-toast';
 import { useAppSelector } from '../store/hooks';
-import { Button } from '../components/ui/Button';
 import { PasswordModal } from '../components/common/PasswordModal';
 import { useHasPrivilege } from '../hooks/useHasPrivilege';
 import { SkeletonLoader } from '../components/ui/SkeletonLoader'; // IMPORT a skeleton loader
+import { Record } from '../types/models';
+import { Button } from '../components/ui/Button';
 
-export function RecordListScreen({ onNavigateToRecord }) {
-    const [records, setRecords] = useState([]);
+export function RecordListScreen({ onNavigateToRecord }: { onNavigateToRecord: (recordId: number) => void }) {
+    const [records, setRecords] = useState<Record[]>([]);
     const [isLoading, setIsLoading] = useState(true); // NEW loading state
     const [activeTab, setActiveTab] = useState('DRAFT');
     const [filterText, setFilterText] = useState('');
     const [isWorkflowModalOpen, setIsWorkflowModalOpen] = useState(false);
-    const [workflowDetails, setWorkflowDetails] = useState({ action: '', recordId: null, meaning: '' });
+    const [workflowDetails, setWorkflowDetails] = useState<{ action: string; recordId: number | null; meaning: string }>({ action: '', recordId: null, meaning: '' });
     const api = useApi();
     const user = useAppSelector((state) => state.auth.user);
 
@@ -48,7 +49,7 @@ export function RecordListScreen({ onNavigateToRecord }) {
         setIsWorkflowModalOpen(true);
     };
 
-    const handleConfirmWorkflow = async ({ password, reason, meaning }) => {
+    const handleConfirmWorkflow = async ({ password, reason, meaning }: { password: string, reason: string, meaning?: string }) => {
         const { action, recordId } = workflowDetails;
         if (!action || !recordId) return;
         setIsWorkflowModalOpen(false);

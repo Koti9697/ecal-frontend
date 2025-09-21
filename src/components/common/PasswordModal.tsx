@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+// In src/components/common/PasswordModal.tsx
+
+import { useState } from 'react';
 import { Button } from '../ui/Button';
 import toast from 'react-hot-toast';
 

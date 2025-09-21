@@ -1,4 +1,4 @@
-import React from 'react';
+// In src/components/common/Notification.tsx
 
 interface NotificationProps {
   message: string;
@@ -10,7 +10,7 @@ export function Notification({ message, type, onDismiss }: NotificationProps) {
     if (!message) return null;
 
     const baseClasses = "p-4 mb-4 rounded-md flex justify-between items-center";
-    const typeClasses = {
+    const typeClasses: { [key: string]: string } = {
         success: "bg-green-100 text-green-800",
         error: "bg-red-100 text-red-800",
     };

@@ -8,7 +8,7 @@ interface FormatDateOptions {
   timeFormat: string;
 }
 
-const formatMap = {
+const formatMap: { [key: string]: string } = {
   'YYYY-MM-DD': 'yyyy-MM-dd',
   'DD-MMM-YYYY': 'dd-MMM-yyyy',
   'MM/DD/YYYY': 'MM/dd/yyyy',

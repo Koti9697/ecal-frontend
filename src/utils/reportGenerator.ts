@@ -4,8 +4,9 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { type User } from '../types/User';
 import { evaluate } from 'mathjs';
+import { Template, Record } from '../types/models';
 
-const getGlobalFieldIndex = (dataInputSections, sIdx, fIdx) => {
+const getGlobalFieldIndex = (dataInputSections: any[], sIdx: number, fIdx: number) => {
     let count = 0;
     for (let i = 0; i < sIdx; i++) { count += dataInputSections[i].fields.length; }
     return count + fIdx;
@@ -33,14 +34,14 @@ const addHeaderAndFooter = (doc: jsPDF, title: string, user: User | null, data: 
     doc.text('Generated from a Validated System', pageWidth - 14, pageHeight - 10, { align: 'right' });
 };
 
-export const generateRecordPdf = (record: any, user: User | null, formValues: any, selectedSections: string[]) => {
+export const generateRecordPdf = (record: Record, user: User | null, formValues: any, selectedSections: string[]) => {
     const doc = new jsPDF();
     const docTitle = `Analytical Record Report: ${record.record_id_display}`;
     let finalY = 0; 
     const tableMargin = { top: 40, bottom: 20 };
     const docData = record.template.document_data || {};
-    const didDrawPage = (data) => addHeaderAndFooter(doc, docTitle, user, data);
-    let allBodyRows = [];
+    const didDrawPage = (data: any) => addHeaderAndFooter(doc, docTitle, user, data);
+    let allBodyRows: any[] = [];
 
     // --- Re-engineered to build a single table body ---
 
@@ -56,15 +57,15 @@ export const generateRecordPdf = (record: any, user: User | null, formValues: an
     if (selectedSections.includes('Data & Results')) {
          if (docData.sampleInfo?.fields?.length > 0) {
             allBodyRows.push([{ content: 'Analysis Information', colSpan: 2, styles: { fontStyle: 'bold', fillColor: '#d3d3d3' } }]);
-            docData.sampleInfo.fields.forEach(field => {
+            docData.sampleInfo.fields.forEach((field: any) => {
                 allBodyRows.push([field.label, formValues[field.id] || field.value || 'N/A']);
             });
         }
 
         if (docData.dataInputs?.sections?.length > 0) {
-            docData.dataInputs.sections.forEach((section, sIdx) => {
+            docData.dataInputs.sections.forEach((section: any, sIdx: number) => {
                 allBodyRows.push([{ content: section.title, colSpan: 2, styles: { fontStyle: 'bold', fillColor: '#d3d3d3' } }]);
-                section.fields.forEach((field, fIdx) => {
+                section.fields.forEach((field: any, fIdx: number) => {
                     const cellId = `A${getGlobalFieldIndex(docData.dataInputs.sections, sIdx, fIdx) + 1}`;
                     allBodyRows.push([field.label, formValues[cellId] || 'N/A']);
                 });
@@ -73,7 +74,7 @@ export const generateRecordPdf = (record: any, user: User | null, formValues: an
         
         if (docData.calculation?.formulas?.length > 0) {
             allBodyRows.push([{ content: 'Results', colSpan: 2, styles: { fontStyle: 'bold', fillColor: '#d3d3d3' } }]);
-            docData.calculation.formulas.forEach(formula => {
+            docData.calculation.formulas.forEach((formula: any) => {
                 let expression = formula.value.startsWith('=') ? formula.value.substring(1) : formula.value;
                 const variables = new Set([...(expression.match(/A\d+/g) || [])]);
                 let allInputsProvided = true;
@@ -108,7 +109,7 @@ export const generateRecordPdf = (record: any, user: User | null, formValues: an
         autoTable(doc, {
             startY: finalY + 10,
             head: [['Action', 'Signed By', 'Date & Time']],
-            body: record.signatures.map(s => [s.meaning, s.signed_by.username, new Date(s.signed_at).toLocaleString()]),
+            body: record.signatures.map((s: any) => [s.meaning, s.signed_by.username, new Date(s.signed_at).toLocaleString()]),
             margin: tableMargin,
             didDrawPage,
         });
@@ -119,7 +120,7 @@ export const generateRecordPdf = (record: any, user: User | null, formValues: an
         autoTable(doc, {
             startY: finalY + 10,
             head: [['Date & Time', 'User', 'Action', 'Reason', 'Old Value', 'New Value']],
-            body: record.audit_trail.map(log => [new Date(log.timestamp).toLocaleString(), log.user.username, log.details, log.reason_for_change, log.previous_value, log.new_value]),
+            body: record.audit_trail.map((log: any) => [new Date(log.timestamp).toLocaleString(), log.user.username, log.details, log.reason_for_change, log.previous_value, log.new_value]),
             margin: tableMargin,
             didDrawPage,
         });
@@ -129,13 +130,13 @@ export const generateRecordPdf = (record: any, user: User | null, formValues: an
     doc.save(`${record.record_id_display}_Report.pdf`);
 };
 
-export const generateTemplatePdf = (template: any, user: User | null, selectedSections: string[]) => {
+export const generateTemplatePdf = (template: Template, user: User | null, selectedSections: string[]) => {
     const doc = new jsPDF();
     const docTitle = `Template Qualification Report: ${template.name} ${template.version}`;
     const tableMargin = { top: 40, bottom: 20 };
     const docData = template.document_data || {};
-    const didDrawPage = (data) => addHeaderAndFooter(doc, docTitle, user, data);
-    let allBodyRows = [];
+    const didDrawPage = (data: any) => addHeaderAndFooter(doc, docTitle, user, data);
+    let allBodyRows: any[] = [];
     let sectionCounter = 1;
 
     // --- Re-engineered to build a single table body ---
@@ -150,30 +151,30 @@ export const generateTemplatePdf = (template: any, user: User | null, selectedSe
         allBodyRows.push(['Version', template.version, '']);
         allBodyRows.push(['Status', template.status, '']);
         if (docData.header?.fields?.length > 0) {
-            docData.header.fields.forEach(field => {
+            docData.header.fields.forEach((field: any) => {
                 allBodyRows.push([field.label, field.value, '']);
             });
         }
     
         if (docData.sampleInfo?.fields?.length > 0 && selectedSections.includes('Analysis Information')) {
             allBodyRows.push([{ content: 'Analysis Information Fields', colSpan: 3, styles: { fontStyle: 'italic', fillColor: '#f0f0f0'} }]);
-            docData.sampleInfo.fields.forEach(field => {
+            docData.sampleInfo.fields.forEach((field: any) => {
                 allBodyRows.push([field.label, field.value || 'N/A', '']);
             });
         }
     }
     
-    const hasDataCalcSection = selectedSections.some(s => docData.dataInputs?.sections?.some(ds => ds.title === s) || s === 'Formula Design');
+    const hasDataCalcSection = selectedSections.some(s => docData.dataInputs?.sections?.some((ds: any) => ds.title === s) || s === 'Formula Design');
     if (hasDataCalcSection) {
         allBodyRows.push([{ content: `${sectionCounter}. Data & Calculations`, colSpan: 3, styles: { fontStyle: 'bold', fillColor: '#d3d3d3', textColor: 0 } }]);
         sectionCounter++;
     }
 
     if (docData.dataInputs?.sections?.length > 0) {
-        docData.dataInputs.sections.forEach((section, sIdx) => {
+        docData.dataInputs.sections.forEach((section: any, sIdx: number) => {
             if (selectedSections.includes(section.title)) {
                 allBodyRows.push([{ content: section.title, colSpan: 3, styles: { fontStyle: 'italic', fillColor: '#f0f0f0'} }]);
-                section.fields.forEach((field, fIdx) => {
+                section.fields.forEach((field: any, fIdx: number) => {
                      const cellId = `A${getGlobalFieldIndex(docData.dataInputs.sections, sIdx, fIdx) + 1}`;
                      const validationType = field.validation?.type || 'Any';
                      allBodyRows.push([field.label, `Cell ID: ${cellId}`, validationType]);
@@ -184,7 +185,7 @@ export const generateTemplatePdf = (template: any, user: User | null, selectedSe
 
     if (selectedSections.includes('Formula Design') && docData.calculation?.formulas?.length > 0) {
         allBodyRows.push([{ content: 'Formula Design', colSpan: 3, styles: { fontStyle: 'italic', fillColor: '#f0f0f0'} }]);
-        docData.calculation.formulas.forEach(f => {
+        docData.calculation.formulas.forEach((f: any) => {
             allBodyRows.push([f.label, f.value, '']);
         });
     }
@@ -206,14 +207,14 @@ export const generateTemplatePdf = (template: any, user: User | null, selectedSe
         
         const fieldIdToLabelMap = new Map();
         if(docData.header?.fields) {
-            docData.header.fields.forEach(field => fieldIdToLabelMap.set(field.id, field.label));
+            docData.header.fields.forEach((field: any) => fieldIdToLabelMap.set(field.id, field.label));
         }
         if (docData.sampleInfo?.fields) {
-            docData.sampleInfo.fields.forEach(field => fieldIdToLabelMap.set(field.id, field.label));
+            docData.sampleInfo.fields.forEach((field: any) => fieldIdToLabelMap.set(field.id, field.label));
         }
         if (docData.dataInputs?.sections) {
-            docData.dataInputs.sections.forEach((section, sIdx) => {
-                section.fields.forEach((field, fIdx) => {
+            docData.dataInputs.sections.forEach((section: any, sIdx: number) => {
+                section.fields.forEach((field: any, fIdx: number) => {
                     const cellId = `A${getGlobalFieldIndex(docData.dataInputs.sections, sIdx, fIdx) + 1}`;
                     fieldIdToLabelMap.set(cellId, field.label);
                 });
@@ -248,7 +249,7 @@ export const generateTemplatePdf = (template: any, user: User | null, selectedSe
         autoTable(doc, {
             startY: finalY + 1, // Start right after the title
             head: [['Action', 'Signed By', 'Date & Time']],
-            body: template.signatures.map(s => [s.meaning, s.signed_by.username, new Date(s.signed_at).toLocaleString()]),
+            body: template.signatures.map((s: any) => [s.meaning, s.signed_by.username, new Date(s.signed_at).toLocaleString()]),
             margin: tableMargin,
             didDrawPage,
         });
@@ -259,7 +260,7 @@ export const generateTemplatePdf = (template: any, user: User | null, selectedSe
         autoTable(doc, {
             startY: finalY + 10,
             head: [['Date & Time', 'User', 'Action', 'Reason', 'Old Value', 'New Value']],
-            body: template.audit_trail.map(log => [new Date(log.timestamp).toLocaleString(), log.user.username, log.details, log.reason_for_change, log.previous_value, log.new_value]),
+            body: template.audit_trail.map((log: any) => [new Date(log.timestamp).toLocaleString(), log.user.username, log.details, log.reason_for_change, log.previous_value, log.new_value]),
             margin: tableMargin,
             didDrawPage,
         });

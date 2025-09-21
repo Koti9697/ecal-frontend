@@ -1,4 +1,4 @@
-import React from 'react';
+// In src/components/ui/SkeletonLoader.tsx
 
 interface SkeletonLoaderProps {
   rows?: number;

@@ -1,6 +1,6 @@
 // In src/components/common/ReportSectionsModal.tsx
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '../ui/Button';
 
 interface ReportSectionsModalProps {

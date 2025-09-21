@@ -1,7 +1,7 @@
 // In src/screens/RecordScreen.tsx
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useForm, Controller, Control } from 'react-hook-form';
 import { useApi } from '../hooks/useApi';
 import { PasswordModal } from '../components/common/PasswordModal';
 import { Button } from '../components/ui/Button';
@@ -13,8 +13,10 @@ import { generateRecordPdf } from '../utils/reportGenerator';
 import { useAppSelector } from '../store/hooks';
 import { ReportSectionsModal } from '../components/common/ReportSectionsModal';
 import { SkeletonLoader } from '../components/ui/SkeletonLoader';
+import { Record, Template } from '../types/models';
+import { User } from '../types/User';
 
-const RecordField = ({ field, control, recordStatus }) => {
+const RecordField = ({ field, control, recordStatus }: { field: { id: string; label: string; value: string }, control: Control<any>, recordStatus: string }) => {
     const isReadOnly = recordStatus !== 'DRAFT';
     return (
         <div className="mb-2">
@@ -31,7 +33,7 @@ const RecordField = ({ field, control, recordStatus }) => {
     );
 };
 
-const DataInputField = ({ field, control, recordStatus, cellId }) => {
+const DataInputField = ({ field, control, recordStatus, cellId }: { field: { id: string; label: string }, control: Control<any>, recordStatus: string, cellId: string }) => {
     const isReadOnly = recordStatus !== 'DRAFT';
     return (
         <div className="mb-2">
@@ -48,8 +50,8 @@ const DataInputField = ({ field, control, recordStatus, cellId }) => {
     );
 };
 
-export function RecordScreen({ recordId, template, onBack }) {
-    const [record, setRecord] = useState<any | null>(null);
+export function RecordScreen({ recordId, template, onBack }: { recordId?: number, template?: Template, onBack: () => void }) {
+    const [record, setRecord] = useState<Record | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
     const [isWorkflowModalOpen, setIsWorkflowModalOpen] = useState(false);
@@ -60,7 +62,7 @@ export function RecordScreen({ recordId, template, onBack }) {
     const api = useApi();
     const { control, reset, getValues, watch, formState: { isDirty } } = useForm();
     const formatDate = useDateFormatter();
-    const user = useAppSelector((state) => state.auth.user);
+    const user = useAppSelector((state) => state.auth.user as User | null);
 
     const canSaveChanges = useHasPrivilege(['CREATE_EDIT_DRAFT_RECORDS']);
     const canGenerateReport = useHasPrivilege(['GENERATE_REPORTS_FOR_RECORDS']);
@@ -77,18 +79,18 @@ export function RecordScreen({ recordId, template, onBack }) {
                 if (recordId) {
                     const data = await api(`/records/${recordId}/`);
                     setRecord(data);
-                    const initialData = {};
-                    data.data_entries.forEach(entry => { initialData[entry.cell_id] = entry.cell_value; });
-                    data.template.document_data.sampleInfo?.fields.forEach(field => {
+                    const initialData: { [key: string]: any } = {};
+                    data.data_entries.forEach((entry: any) => { initialData[entry.cell_id] = entry.cell_value; });
+                    data.template.document_data.sampleInfo?.fields.forEach((field: any) => {
                         if (initialData[field.id] === undefined) {
                             initialData[field.id] = field.value;
                         }
                     });
                     reset(initialData);
                 } else if (template) {
-                    setRecord({ template: template, status: 'DRAFT', data_entries: [] });
-                    const initialData = {};
-                     template.document_data.sampleInfo?.fields.forEach(field => {
+                    setRecord({ template: template, status: 'DRAFT', data_entries: [] } as any);
+                    const initialData: { [key: string]: any } = {};
+                     template.document_data.sampleInfo?.fields.forEach((field: any) => {
                         initialData[field.id] = field.value;
                     });
                     reset(initialData);
@@ -104,7 +106,7 @@ export function RecordScreen({ recordId, template, onBack }) {
 
     const handleSaveData = () => setIsSaveModalOpen(true);
 
-    const handleConfirmSave = async ({ reason, password }) => {
+    const handleConfirmSave = async ({ reason, password }: { reason: string, password: string }) => {
         setIsSaveModalOpen(false);
         const formData = getValues();
         const data_entries = Object.keys(formData).map(key => ({ cell_id: key, cell_value: formData[key] }));
@@ -118,7 +120,7 @@ export function RecordScreen({ recordId, template, onBack }) {
             } else {
                 const newRecord = await api('/records/', {
                     method: 'POST',
-                    data: { template_id: template.id }
+                    data: { template_id: template?.id }
                 });
                 await api(`/records/${newRecord.id}/save-data/`, { method: 'PATCH', data: { data_entries, reason_for_change: reason, password } });
                 toast.success("Record created and data saved successfully!");
@@ -130,9 +132,9 @@ export function RecordScreen({ recordId, template, onBack }) {
             // --- THIS IS THE FIX ---
             // After saving, we reset the form with the latest data from the server.
             // This tells react-hook-form that the current state is now the "saved" state.
-            const newInitialData = {};
-            updatedRecord.data_entries.forEach(entry => { newInitialData[entry.cell_id] = entry.cell_value; });
-            updatedRecord.template.document_data.sampleInfo?.fields.forEach(field => {
+            const newInitialData: { [key: string]: any } = {};
+            updatedRecord.data_entries.forEach((entry: any) => { newInitialData[entry.cell_id] = entry.cell_value; });
+            updatedRecord.template.document_data.sampleInfo?.fields.forEach((field: any) => {
                 if (newInitialData[field.id] === undefined) {
                     newInitialData[field.id] = field.value;
                 }
@@ -158,7 +160,7 @@ export function RecordScreen({ recordId, template, onBack }) {
         setIsWorkflowModalOpen(true);
     };
 
-    const handleConfirmWorkflow = async ({ password, reason, meaning }) => {
+    const handleConfirmWorkflow = async ({ password, reason, meaning }: { password: string, reason: string, meaning?: string }) => {
         const { action } = workflowDetails;
         if (!action || !record || !record.id) return;
         setIsWorkflowModalOpen(false);
@@ -208,7 +210,7 @@ export function RecordScreen({ recordId, template, onBack }) {
     };
 
     const watchedFields = watch();
-    const calculateResult = (formula) => {
+    const calculateResult = (formula: { value: string }) => {
         let expression = formula.value.startsWith('=') ? formula.value.substring(1) : formula.value;
         const variables = new Set([...(expression.match(/A\d+/g) || [])]);
 
@@ -229,7 +231,7 @@ export function RecordScreen({ recordId, template, onBack }) {
         } catch (e) { return "Invalid formula or data"; }
     };
 
-    const getGlobalFieldIndex = (dataInputSections, sIdx, fIdx) => {
+    const getGlobalFieldIndex = (dataInputSections: any[], sIdx: number, fIdx: number) => {
         let count = 0;
         for (let i = 0; i < sIdx; i++) { count += dataInputSections[i].fields.length; }
         return count + fIdx;
@@ -284,17 +286,17 @@ export function RecordScreen({ recordId, template, onBack }) {
 
             {activeTab === 'data' && (
                 <div className="space-y-6">
-                    {docData.header?.fields?.length > 0 && (<div className="designer-section"><h4 className="font-bold text-lg mb-2">Template Information</h4><div className="grid grid-cols-1 md:grid-cols-3 gap-4">{docData.header.fields.map(field => (<div key={field.id}><label className="block text-sm font-medium text-slate-700">{field.label}</label><input value={field.value} readOnly className="input-style bg-slate-100"/></div>))}</div></div>)}
-                    {docData.sampleInfo?.fields?.length > 0 && (<div className="designer-section"><h4 className="font-bold text-lg mb-2">Analysis Information</h4><div className="grid grid-cols-1 md:grid-cols-3 gap-4">{docData.sampleInfo.fields.map(field => <RecordField key={field.id} field={field} control={control} recordStatus={record.status} />)}</div></div>)}
-                    {docData.dataInputs?.sections?.length > 0 && (<div className="designer-section"><h4 className="font-bold text-lg mb-2">Data Inputs & Variables</h4>{docData.dataInputs.sections.map((section, sIdx) => (<div key={section.id} className="mb-4"><h5 className="font-semibold text-md text-slate-800 mb-2">{section.title}</h5><div className="grid grid-cols-1 md:grid-cols-3 gap-4">{section.fields.map((field, fIdx) => <DataInputField key={field.id} field={field} control={control} recordStatus={record.status} cellId={`A${getGlobalFieldIndex(docData.dataInputs.sections, sIdx, fIdx) + 1}`} />)}</div></div>))}</div>)}
-                    {docData.calculation?.formulas?.length > 0 && (<div className="designer-section"><h4 className="font-bold text-lg mb-2">Results</h4><div className="grid grid-cols-1 md:grid-cols-3 gap-4">{docData.calculation.formulas.map(field => (<div className="mb-2" key={field.id}><label className="block text-sm font-medium text-slate-700">{field.label}</label><input value={calculateResult(field)} readOnly className="input-style bg-slate-100"/></div>))}</div></div>)}
+                    {docData.header?.fields?.length > 0 && (<div className="designer-section"><h4 className="font-bold text-lg mb-2">Template Information</h4><div className="grid grid-cols-1 md:grid-cols-3 gap-4">{docData.header.fields.map((field: any) => (<div key={field.id}><label className="block text-sm font-medium text-slate-700">{field.label}</label><input value={field.value} readOnly className="input-style bg-slate-100"/></div>))}</div></div>)}
+                    {docData.sampleInfo?.fields?.length > 0 && (<div className="designer-section"><h4 className="font-bold text-lg mb-2">Analysis Information</h4><div className="grid grid-cols-1 md:grid-cols-3 gap-4">{docData.sampleInfo.fields.map((field: any) => <RecordField key={field.id} field={field} control={control} recordStatus={record?.status ?? ''} />)}</div></div>)}
+                    {docData.dataInputs?.sections?.length > 0 && (<div className="designer-section"><h4 className="font-bold text-lg mb-2">Data Inputs & Variables</h4>{docData.dataInputs.sections.map((section: any, sIdx: number) => (<div key={section.id} className="mb-4"><h5 className="font-semibold text-md text-slate-800 mb-2">{section.title}</h5><div className="grid grid-cols-1 md:grid-cols-3 gap-4">{section.fields.map((field: any, fIdx: number) => <DataInputField key={field.id} field={field} control={control} recordStatus={record?.status ?? ''} cellId={`A${getGlobalFieldIndex(docData.dataInputs.sections, sIdx, fIdx) + 1}`} />)}</div></div>))}</div>)}
+                    {docData.calculation?.formulas?.length > 0 && (<div className="designer-section"><h4 className="font-bold text-lg mb-2">Results</h4><div className="grid grid-cols-1 md:grid-cols-3 gap-4">{docData.calculation.formulas.map((field: any) => (<div className="mb-2" key={field.id}><label className="block text-sm font-medium text-slate-700">{field.label}</label><input value={calculateResult(field)} readOnly className="input-style bg-slate-100"/></div>))}</div></div>)}
                 </div>
             )}
 
             {activeTab === 'history' && (
                 <div className="space-y-6">
-                    <div className="designer-section space-y-3"><h4 className="font-bold text-lg">Approvals History</h4><div className="overflow-x-auto"><table className="min-w-full divide-y divide-slate-200"><thead className="bg-slate-200"><tr><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Action</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Signed By</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Date & Time</th></tr></thead><tbody className="bg-white divide-y divide-slate-200">{record?.signatures?.length > 0 ? record.signatures.map(s => (<tr key={s.signed_at}><td className="px-4 py-2 text-sm">{s.meaning}</td><td className="px-4 py-2 text-sm">{s.signed_by.username}</td><td className="px-4 py-2 text-sm">{formatDate(s.signed_at)}</td></tr>)) : (<tr><td colSpan={3} className="px-4 py-4 text-center text-slate-500">No signatures recorded.</td></tr>)}</tbody></table></div></div>
-                    <div className="designer-section space-y-3"><h4 className="font-bold text-lg">Record History</h4><div className="overflow-x-auto"><table className="min-w-full divide-y divide-slate-200"><thead className="bg-slate-200"><tr><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Date & Time</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">User</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Action</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Reason</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Previous Value</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">New Value</th></tr></thead><tbody className="bg-white divide-y divide-slate-200">{record?.audit_trail?.length > 0 ? record.audit_trail.map(log => (<tr key={log.id}><td className="px-4 py-2 text-sm">{formatDate(log.timestamp)}</td><td className="px-4 py-2 text-sm">{log.user.username}</td><td className="px-4 py-2 text-sm">{log.details}</td><td className="px-4 py-2 text-sm">{log.reason_for_change}</td><td className="px-4 py-2 text-sm">{log.previous_value}</td><td className="px-4 py-2 text-sm">{log.new_value}</td></tr>)) : (<tr><td colSpan={6} className="px-4 py-4 text-center text-slate-500">No history recorded.</td></tr>)}</tbody></table></div></div>
+                    <div className="designer-section space-y-3"><h4 className="font-bold text-lg">Approvals History</h4><div className="overflow-x-auto"><table className="min-w-full divide-y divide-slate-200"><thead className="bg-slate-200"><tr><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Action</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Signed By</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Date & Time</th></tr></thead><tbody className="bg-white divide-y divide-slate-200">{record?.signatures?.length > 0 ? record.signatures.map((s: any) => (<tr key={s.signed_at}><td className="px-4 py-2 text-sm">{s.meaning}</td><td className="px-4 py-2 text-sm">{s.signed_by.username}</td><td className="px-4 py-2 text-sm">{formatDate(s.signed_at)}</td></tr>)) : (<tr><td colSpan={3} className="px-4 py-4 text-center text-slate-500">No signatures recorded.</td></tr>)}</tbody></table></div></div>
+                    <div className="designer-section space-y-3"><h4 className="font-bold text-lg">Record History</h4><div className="overflow-x-auto"><table className="min-w-full divide-y divide-slate-200"><thead className="bg-slate-200"><tr><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Date & Time</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">User</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Action</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Reason</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Previous Value</th><th className="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">New Value</th></tr></thead><tbody className="bg-white divide-y divide-slate-200">{record?.audit_trail?.length > 0 ? record.audit_trail.map((log: any) => (<tr key={log.id}><td className="px-4 py-2 text-sm">{formatDate(log.timestamp)}</td><td className="px-4 py-2 text-sm">{log.user.username}</td><td className="px-4 py-2 text-sm">{log.details}</td><td className="px-4 py-2 text-sm">{log.reason_for_change}</td><td className="px-4 py-2 text-sm">{log.previous_value}</td><td className="px-4 py-2 text-sm">{log.new_value}</td></tr>)) : (<tr><td colSpan={6} className="px-4 py-4 text-center text-slate-500">No history recorded.</td></tr>)}</tbody></table></div></div>
                 </div>
             )}
         </div>

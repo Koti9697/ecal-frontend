@@ -19,6 +19,7 @@ import { useApi } from '../hooks/useApi';
 import { useAppDispatch } from '../store/hooks';
 import { setSettings } from '../store/authSlice';
 import { ReportingScreen } from './ReportingScreen';
+import { Template } from '../types/models';
 
 type ViewState =
   | { view: 'dashboard' } | { view: 'templates' } | { view: 'template-admin' }
@@ -50,12 +51,12 @@ export function MainApp() {
     const renderView = () => {
         switch (currentView.view) {
             case 'dashboard': return <Dashboard />;
-            case 'templates': return <TemplateScreen onNavigateToRecord={(template) => setCurrentView({ view: 'record', template })} />;
-            case 'template-admin': return <TemplateAdministration onNavigateToVerify={(template) => setCurrentView({ view: 'template-verification', template })} />;
+            case 'templates': return <TemplateScreen onNavigateToRecord={(template: Template) => setCurrentView({ view: 'record', template })} />;
+            case 'template-admin': return <TemplateAdministration onNavigateToVerify={(template: Template) => setCurrentView({ view: 'template-verification', template })} />;
             case 'admin': return <SystemAdministration />;
             case 'audit-trail': return <AuditTrailScreen />;
             case 'system-settings': return <SystemSettingsScreen />;
-            case 'records': return <RecordListScreen onNavigateToRecord={(recordId) => setCurrentView({ view: 'record', recordId })} />;
+            case 'records': return <RecordListScreen onNavigateToRecord={(recordId: number) => setCurrentView({ view: 'record', recordId })} />;
             case 'reporting': return <ReportingScreen />;
             case 'record': return <RecordScreen recordId={currentView.recordId} template={currentView.template} onBack={() => setCurrentView({ view: 'records' })} />;
             case 'template-verification': return <TemplateVerificationScreen template={currentView.template} onBack={() => setCurrentView({ view: 'template-admin' })} />;

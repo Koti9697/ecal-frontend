@@ -10,14 +10,15 @@ import { useHasPrivilege } from '../hooks/useHasPrivilege';
 import toast from 'react-hot-toast';
 import { useDateFormatter } from '../hooks/useDateFormatter';
 import { SkeletonLoader } from '../components/ui/SkeletonLoader';
+import { Template } from '../types/models';
 
-export function TemplateAdministration({ onNavigateToVerify }) {
-    const [templates, setTemplates] = useState<any[]>([]);
+export function TemplateAdministration({ onNavigateToVerify }: { onNavigateToVerify: (template: Template) => void }) {
+    const [templates, setTemplates] = useState<Template[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null);
+    const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
     const [isFormVisible, setIsFormVisible] = useState(false);
     const [isWorkflowModalOpen, setIsWorkflowModalOpen] = useState(false);
-    const [workflowDetails, setWorkflowDetails] = useState({ action: '', templateId: null, meaning: '' });
+    const [workflowDetails, setWorkflowDetails] = useState<{ action: string; templateId: number | null; meaning: string }>({ action: '', templateId: null, meaning: '' });
     const [activeTab, setActiveTab] = useState('DRAFT');
     const [filters, setFilters] = useState({
         name: '',
@@ -64,7 +65,7 @@ export function TemplateAdministration({ onNavigateToVerify }) {
     };
 
     const handleCreate = () => { setSelectedTemplate(null); setIsFormVisible(true); };
-    const handleEdit = async (template: any) => {
+    const handleEdit = async (template: Template) => {
         try {
             const fullTemplate = await api(`/templates/${template.id}/`);
             setSelectedTemplate(fullTemplate);
@@ -113,7 +114,7 @@ export function TemplateAdministration({ onNavigateToVerify }) {
         setIsWorkflowModalOpen(true);
     };
 
-    const handleConfirmWorkflow = async ({ password, reason, meaning }) => {
+    const handleConfirmWorkflow = async ({ password, reason, meaning }: { password: string; reason: string; meaning?: string; }) => {
         const { action, templateId } = workflowDetails;
         if (!action || !templateId) return;
         setIsWorkflowModalOpen(false);
@@ -130,7 +131,7 @@ export function TemplateAdministration({ onNavigateToVerify }) {
         return templates.filter(template => template.status === activeTab);
     }, [templates, activeTab]);
 
-    const renderWorkflowButtons = (template) => {
+    const renderWorkflowButtons = (template: Template) => {
         const buttonBaseClass = "font-medium ml-4";
         const editButtonText = (template.status === 'DRAFT' || template.status === 'REJECTED') ? 'Edit' : 'View';
 
@@ -213,7 +214,7 @@ export function TemplateAdministration({ onNavigateToVerify }) {
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-slate-200">
-                                {filteredTemplates.map(template => (
+                                {filteredTemplates.map((template: any) => (
                                     <tr key={template.id}>
                                         <td className="px-6 py-4 text-sm font-medium">{template.template_id}</td>
                                         <td className="px-6 py-4 text-sm font-medium">{template.name}</td>
