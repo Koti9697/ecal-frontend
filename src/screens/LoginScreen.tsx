@@ -19,20 +19,21 @@ export function LoginScreen() {
 
     const onSubmit = async (data: LoginFormInputs) => {
         try {
-            // --- THIS IS THE FIX ---
-            // We are reverting to a direct axios call, which is the correct
-            // method for the login form to handle its specific error messages.
-            // This call does NOT use the custom useApi hook.
             const response = await axios.post('/api/token/', data, {
                 baseURL: import.meta.env.VITE_API_BASE_URL
             });
             dispatch(setCredentials({ token: response.data.access, user: response.data.user }));
             toast.success('Login successful!');
         } catch (err) {
-            // This logic will now correctly execute and display the specific error from the server.
+            // --- THIS IS THE FIX: Enhanced error logging ---
+            console.error("Login API Error:", err); // Log the full error object
             let errorMessage = 'Login failed. Please check your username and password.';
-            if (isAxiosError(err) && err.response?.data?.detail) {
-                errorMessage = err.response.data.detail;
+            if (isAxiosError(err) && err.response) {
+                 // Log the detailed response from the server
+                console.error("Backend Response:", err.response.data);
+                if (err.response.data?.detail) {
+                    errorMessage = err.response.data.detail;
+                }
             }
             toast.error(errorMessage);
         }
