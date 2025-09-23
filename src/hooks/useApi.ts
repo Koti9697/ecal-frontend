@@ -13,7 +13,7 @@ export function useApi() {
 
     const api = useCallback(async (endpoint: string, config: AxiosRequestConfig = {}) => {
         const instance = axios.create({
-            baseURL: import.meta.env.VITE_API_BASE_URL || '/api', // Use environment variable
+            baseURL: import.meta.env.VITE_API_BASE_URL, // This is the crucial change
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
@@ -32,7 +32,6 @@ export function useApi() {
                     } else if (status === 403) {
                         toast.error(data.detail || "You do not have permission to perform this action.");
                     } else if (status === 400) {
-                        // Handle validation errors from DRF
                         if (typeof data === 'object' && data !== null) {
                             const errorMessages = Object.values(data).flat().join(' ');
                             if (errorMessages) {
@@ -53,7 +52,6 @@ export function useApi() {
             return response.data;
         } catch (error) {
             if (isAxiosError(error)) {
-                // Let the calling component handle specific error messages
                 throw error.response || error;
             }
             throw error;
