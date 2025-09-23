@@ -1,13 +1,12 @@
 // In src/screens/LoginScreen.tsx
 
+import axios, { isAxiosError } from 'axios';
 import { useForm } from 'react-hook-form';
 import { useAppDispatch } from '../store/hooks';
 import { setCredentials } from '../store/authSlice';
 import toast from 'react-hot-toast';
 import { Button } from '../components/ui/Button';
 import { FormError } from '../components/ui/FormError';
-import { useApi } from '../hooks/useApi'; // --- 1. IMPORT THE useApi HOOK ---
-import { isAxiosError } from 'axios';
 
 type LoginFormInputs = {
     username: string;
@@ -16,16 +15,21 @@ type LoginFormInputs = {
 
 export function LoginScreen() {
     const dispatch = useAppDispatch();
-    const api = useApi(); // --- 2. INITIALIZE THE useApi HOOK ---
     const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginFormInputs>();
 
     const onSubmit = async (data: LoginFormInputs) => {
         try {
-            // --- 3. USE THE 'api' HOOK FOR THE REQUEST ---
-            const response = await api('/token/', { method: 'POST', data });
-            dispatch(setCredentials({ token: response.access, user: response.user }));
+            // --- THIS IS THE FIX ---
+            // We are reverting to a direct axios call, which is the correct
+            // method for the login form to handle its specific error messages.
+            // This call does NOT use the custom useApi hook.
+            const response = await axios.post('/api/token/', data, {
+                baseURL: import.meta.env.VITE_API_BASE_URL
+            });
+            dispatch(setCredentials({ token: response.data.access, user: response.data.user }));
             toast.success('Login successful!');
         } catch (err) {
+            // This logic will now correctly execute and display the specific error from the server.
             let errorMessage = 'Login failed. Please check your username and password.';
             if (isAxiosError(err) && err.response?.data?.detail) {
                 errorMessage = err.response.data.detail;
