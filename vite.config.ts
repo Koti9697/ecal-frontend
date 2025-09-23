@@ -4,9 +4,16 @@ import tailwindcss from '@tailwindcss/postcss'
 import autoprefixer from 'autoprefixer'
 
 export default defineConfig({
-  // This new 'server' section is the fix.
+  // --- THIS IS THE FIX ---
+  // This server section correctly proxies API requests during local development.
+  // It tells Vite: "When you see a request to '/api', forward it to the backend."
   server: {
-    // THIS PROXY SECTION SHOULD BE REMOVED FOR CLARITY
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000', // Your local Django backend
+        changeOrigin: true,
+      },
+    }
   },
   css: {
     postcss: {
