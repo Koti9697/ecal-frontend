@@ -6,14 +6,7 @@ import autoprefixer from 'autoprefixer'
 export default defineConfig({
   // This new 'server' section is the fix.
   server: {
-    proxy: {
-      // This rule tells Vite to forward any request that starts with '/api'
-      // to your backend server running on http://localhost:8000
-      '/api': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-      },
-    }
+    // THIS PROXY SECTION SHOULD BE REMOVED FOR CLARITY
   },
   css: {
     postcss: {
