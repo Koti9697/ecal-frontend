@@ -72,6 +72,17 @@ export function TemplateAdministration({ onNavigateToVerify }: { onNavigateToVer
             setIsFormVisible(true);
         } catch (error) { toast.error("Failed to load template details."); }
     };
+    
+    // --- THIS IS THE FIX: A new handler for the Verify button ---
+    const handleVerifyClick = async (template: Template) => {
+        try {
+            const fullTemplate = await api(`/templates/${template.id}/`);
+            onNavigateToVerify(fullTemplate);
+        } catch (error) {
+            toast.error("Failed to load template details for verification.");
+        }
+    };
+
     const handleCancel = () => { setIsFormVisible(false); setSelectedTemplate(null); };
 
     const handleSave = async (templateData: any) => {
@@ -138,8 +149,9 @@ export function TemplateAdministration({ onNavigateToVerify }: { onNavigateToVer
         return (
             <>
                 <button onClick={() => handleEdit(template)} className="text-blue-600 hover:text-blue-900">{editButtonText}</button>
+                {/* --- THIS IS THE FIX: Update the onClick handler --- */}
                 {template.status === 'DRAFT' && canVerify &&
-                    <button onClick={() => onNavigateToVerify(template)} className={`${buttonBaseClass} text-teal-600 hover:text-teal-900`}>Verify</button>}
+                    <button onClick={() => handleVerifyClick(template)} className={`${buttonBaseClass} text-teal-600 hover:text-teal-900`}>Verify</button>}
                 {template.status === 'VERIFIED' && canSubmit &&
                     <button onClick={() => handleWorkflowClick('submit', template.id, 'Submitted')} className={`${buttonBaseClass} text-green-600 hover:text-green-900`}>Submit for Review</button>}
                 {template.status === 'SUBMITTED_FOR_REVIEW' && canReview &&
