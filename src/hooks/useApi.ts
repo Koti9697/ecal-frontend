@@ -12,8 +12,13 @@ export function useApi() {
     const token = useAppSelector((state: RootState) => state.auth.token);
 
     const api = useCallback(async (endpoint: string, config: AxiosRequestConfig = {}) => {
+        
+        // --- THIS IS THE FIX ---
+        // This ensures the API path is correctly constructed for both development and production.
+        const requestUrl = `/api${endpoint}`;
+        
         const instance = axios.create({
-            baseURL: import.meta.env.VITE_API_BASE_URL, // This is the crucial change
+            baseURL: import.meta.env.VITE_API_BASE_URL || '', // Base URL is just the domain
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
@@ -46,7 +51,8 @@ export function useApi() {
 
         try {
             const response = await instance({
-                url: endpoint,
+                // Use the correctly constructed URL
+                url: requestUrl,
                 ...config,
             });
             return response.data;
