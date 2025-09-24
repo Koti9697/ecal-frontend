@@ -1,15 +1,20 @@
 // In src/screens/TemplateVerificationScreen.tsx
 
+import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import type { Control } from 'react-hook-form';
 import { evaluate } from 'mathjs';
+import toast from 'react-hot-toast';
+import { useApi } from '../hooks/useApi';
+import { Button } from '../components/ui/Button';
+import { PasswordModal } from '../components/common/PasswordModal';
 import type { Template } from '../types/models';
 
-const VerificationField = ({ field, control, defaultValue }: { field: { value: string, label: string }, control: Control<any>, defaultValue: any }) => (
+const VerificationField = ({ field, control, defaultValue }: { field: { id: string, label: string }, control: Control<any>, defaultValue: any }) => (
     <div className="mb-2">
         <label className="block text-sm font-medium text-slate-700">{field.label}</label>
         <Controller
-            name={field.value}
+            name={field.id}
             control={control}
             defaultValue={defaultValue}
             render={({ field: { onChange, onBlur, value } }) => (
@@ -25,9 +30,35 @@ const VerificationField = ({ field, control, defaultValue }: { field: { value: s
 );
 
 export function TemplateVerificationScreen({ template, onBack }: { template: Template, onBack: () => void }) {
-    const { control, watch } = useForm();
+    const { control, watch, getValues } = useForm({
+        defaultValues: template?.document_data?.verification_data || {}
+    });
     const watchedFields = watch();
     const docData = template?.document_data || {};
+    const api = useApi();
+
+    // --- THIS IS THE NEW CODE ---
+    const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
+
+    const handleVerifyClick = () => {
+        setIsVerifyModalOpen(true);
+    };
+
+    const handleConfirmVerify = async ({ password, reason, meaning }: { password: string; reason: string; meaning?: string; }) => {
+        setIsVerifyModalOpen(false);
+        const verification_data = getValues();
+        try {
+            await api(`/templates/${template.id}/verify/`, {
+                method: 'POST',
+                data: { verification_data, password, reason, meaning }
+            });
+            toast.success("Template successfully verified.");
+            onBack(); // Go back to the admin screen after success
+        } catch (err: any) {
+            toast.error(`Verification failed: ${err.data?.detail || 'An error occurred.'}`);
+        }
+    };
+    // --- END OF NEW CODE ---
 
     const getGlobalFieldIndex = (dataInputSections: any[], sIdx: number, fIdx: number) => {
         let count = 0;
@@ -63,10 +94,23 @@ export function TemplateVerificationScreen({ template, onBack }: { template: Tem
 
     return (
         <div>
+            {/* --- THIS IS THE NEW CODE --- */}
+            <PasswordModal
+                isOpen={isVerifyModalOpen}
+                onConfirm={handleConfirmVerify}
+                onCancel={() => setIsVerifyModalOpen(false)}
+                title="Confirm Template Verification"
+                actionText="Confirm with E-Signature"
+                isReasonRequired={true}
+                showMeaningField={true}
+                meaningOptions={["Verified"]}
+            />
+            {/* --- END OF NEW CODE --- */}
+
             <div className="flex justify-between items-center mb-4">
                 <div>
                     <button onClick={onBack} className="text-blue-600 hover:underline">&larr; Back to Template Admin</button>
-                    <h3 className="text-2xl font-bold text-slate-800">Verifying Template: {template?.name} v{template?.version}</h3>
+                    <h3 className="text-2xl font-bold text-slate-800">Verifying Template: {template?.name} {template?.version}</h3>
                     <p className="text-sm text-slate-500">Enter a complete set of test data to verify the template's calculations. When you save, this data will be stored as a permanent qualification record for this template version.</p>
                 </div>
             </div>
@@ -90,7 +134,7 @@ export function TemplateVerificationScreen({ template, onBack }: { template: Tem
                     <div className="designer-section">
                         <h4 className="font-bold text-lg mb-2">Analysis Information</h4>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {docData.sampleInfo.fields.map((field: any) => <VerificationField key={field.id} field={field} control={control} defaultValue={template?.document_data?.verification_data?.[field.value]} />)}
+                            {docData.sampleInfo.fields.map((field: any) => <VerificationField key={field.id} field={{...field, id: field.id}} control={control} defaultValue={template?.document_data?.verification_data?.[field.id]} />)}
                         </div>
                     </div>
                 )}
@@ -104,7 +148,7 @@ export function TemplateVerificationScreen({ template, onBack }: { template: Tem
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     {section.fields.map((field: any, fIdx: number) => {
                                         const cellId = `A${getGlobalFieldIndex(docData.dataInputs.sections, sIdx, fIdx) + 1}`;
-                                        return <VerificationField key={field.id} field={{...field, value: cellId }} control={control} defaultValue={template?.document_data?.verification_data?.[cellId]} />;
+                                        return <VerificationField key={field.id} field={{...field, id: cellId }} control={control} defaultValue={template?.document_data?.verification_data?.[cellId]} />;
                                     })}
                                 </div>
                             </div>
@@ -129,6 +173,15 @@ export function TemplateVerificationScreen({ template, onBack }: { template: Tem
                         </div>
                     </div>
                 )}
+
+                {/* --- THIS IS THE NEW CODE --- */}
+                <div className="pt-4 mt-4 border-t flex justify-end space-x-4">
+                    <Button type="button" variant="secondary" onClick={onBack}>Cancel</Button>
+                    <Button type="button" onClick={handleVerifyClick} className="bg-teal-600 hover:bg-teal-700">
+                        Save Verification & Proceed
+                    </Button>
+                </div>
+                {/* --- END OF NEW CODE --- */}
             </div>
         </div>
     );
